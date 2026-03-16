@@ -5,7 +5,7 @@ export default function JobSearch() {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("all"); // 'all', 'it-jobs', 'teaching-jobs'
+  const [selectedField, setSelectedField] = useState("all"); // job field/category
 
   const loadJobs = async () => {
     setLoading(true);
@@ -13,26 +13,22 @@ export default function JobSearch() {
       const res = await fetch("http://localhost:5000/jobs");
       const data = await res.json();
 
-      // Junior-friendly criteria
-      const juniorKeywords = ["junior", "trainee", "graduate", "entry level", "apprentice"];
-      const salaryCap = 30000;
+      const salaryCap = 30000; // Only show jobs up to £30,000
 
       const filteredJobs = data.filter((job) => {
         const title = job.title.toLowerCase();
         const categoryTag = job.category?.tag?.toLowerCase() || "";
 
-        const matchesJunior =
-          juniorKeywords.some((kw) => title.includes(kw)) ||
-          (job.salary_max && job.salary_max <= salaryCap);
+        const matchesSalary = job.salary_max && job.salary_max <= salaryCap;
 
         const matchesSearch =
           searchTerm === "" ||
           title.includes(searchTerm.toLowerCase());
 
-        const matchesCategory =
-          categoryFilter === "all" || categoryTag === categoryFilter;
+        const matchesField =
+          selectedField === "all" || categoryTag === selectedField;
 
-        return matchesJunior && matchesSearch && matchesCategory;
+        return matchesSalary && matchesSearch && matchesField;
       });
 
       setJobs(filteredJobs);
@@ -56,27 +52,17 @@ export default function JobSearch() {
         style={{ marginRight: "8px", padding: "4px" }}
       />
 
-      {/* Category filter buttons */}
-      <div style={{ margin: "8px 0" }}>
-        <button
-          onClick={() => setCategoryFilter("all")}
-          style={{ marginRight: "4px", fontWeight: categoryFilter === "all" ? "bold" : "normal" }}
-        >
-          All
-        </button>
-        <button
-          onClick={() => setCategoryFilter("it-jobs")}
-          style={{ marginRight: "4px", fontWeight: categoryFilter === "it-jobs" ? "bold" : "normal" }}
-        >
-          IT Jobs
-        </button>
-        <button
-          onClick={() => setCategoryFilter("teaching-jobs")}
-          style={{ fontWeight: categoryFilter === "teaching-jobs" ? "bold" : "normal" }}
-        >
-          Teaching Jobs
-        </button>
-      </div>
+      {/* Job field selector */}
+      <select
+        value={selectedField}
+        onChange={(e) => setSelectedField(e.target.value)}
+        style={{ marginRight: "8px", padding: "4px" }}
+      >
+        <option value="all">All Fields</option>
+        <option value="it-jobs">IT Jobs</option>
+        <option value="teaching-jobs">Teaching Jobs</option>
+        {/* Add more fields here if needed */}
+      </select>
 
       {/* Load jobs button */}
       <button onClick={loadJobs}>{loading ? "Loading..." : "Load Jobs"}</button>
