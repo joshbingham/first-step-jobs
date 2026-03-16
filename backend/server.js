@@ -8,7 +8,12 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// routes
+// health check route
+app.get("/api/health", (req, res) => {
+  res.json({ status: "Server is running" });
+});
+
+// job routes
 app.use("/api/jobs", jobsRoutes);
 
 const PORT = 5000;
