@@ -1,18 +1,24 @@
-FirstStepJobs
+# FirstStepJobs
 
-A junior-friendly job aggregator that pulls entry-level software jobs
-from multiple APIs and highlights opportunities for beginner developers.
+A job finder designed specifically for entry-level developers.
 
-Tech Stack
-- React
-- Node.js
-- Express
-- External Job APIs
+## Tech Stack
+React
+Node.js
+Express
 
-Project Structure
-/frontend   React UI
-/backend    API aggregation service
+## Project Structure
+/frontend – React UI
+/backend – API aggregator
 
-Development Setup
-1. Run frontend
-2. Run backend
+## Running Locally
+
+Frontend
+cd frontend
+npm install
+npm run dev
+
+Backend
+cd backend
+npm install
+node server.js
