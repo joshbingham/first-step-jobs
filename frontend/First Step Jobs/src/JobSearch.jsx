@@ -2,7 +2,8 @@
 import { useState } from "react";
 
 export default function JobSearch() {
-  const [jobs, setJobs] = useState([]);
+  const [localJobs, setLocalJobs] = useState([]);
+  const [remoteJobs, setRemoteJobs] = useState([]);
   const [loading, setLoading] = useState(false);
 
   // User inputs
@@ -11,6 +12,7 @@ export default function JobSearch() {
   const [radius, setRadius] = useState(10);
   const [salaryMin, setSalaryMin] = useState("");
   const [salaryMax, setSalaryMax] = useState("");
+  const [view, setView] = useState("local"); // "local" | "remote"
 
   const loadJobs = async () => {
     setLoading(true);
@@ -28,11 +30,13 @@ export default function JobSearch() {
       const res = await fetch(`http://localhost:5000/jobs?${params.toString()}`);
       const data = await res.json();
 
-      setJobs(Array.isArray(data) ? data : []);
+      setLocalJobs(data.localJobs);
+      setRemoteJobs(data.remoteJobs);
       console.log("API response:", data);
     } catch (err) {
       console.error("Failed to load jobs:", err);
-      setJobs([]);
+      setLocalJobs([]);
+      setRemoteJobs([]);
     }
 
     setLoading(false);
@@ -96,20 +100,67 @@ export default function JobSearch() {
       </button>
 
       {/* Results */}
-      <ul style={{ marginTop: "20px" }}>
-        {jobs.map((job) => (
-          <li key={job.id} style={{ marginBottom: "16px" }}>
-            <a href={job.redirect_url} target="_blank" rel="noopener noreferrer">
-              {job.title} - {job.company.display_name} ({job.location.display_name})
-            </a>
-            <p>
-              £{job.salary_min} - £{job.salary_max}
-            </p>
-          </li>
-        ))}
-      </ul>
+      <div style={{ marginTop: "20px" }}>
+        {/* Toggle buttons */}
+        <button onClick={() => setView("local")} style={{ marginRight: "8px" }}>
+          Near Me Jobs
+        </button>
+        <button onClick={() => setView("remote")}>
+          Remote Jobs
+        </button>
 
-      {jobs.length === 0 && !loading && <p>No jobs found.</p>}
+        {/* LOCAL JOBS */}
+        {view === "local" && (
+          <>
+            <h2>Jobs Near You</h2>
+
+            {localJobs.length === 0 && !loading && <p>No local jobs found.</p>}
+
+            <ul>
+              {localJobs.map((job, index) => (
+                <li key={job.id || index} style={{ marginBottom: "16px" }}>
+                  <a href={job.redirect_url} target="_blank" rel="noopener noreferrer">
+                    {job.title} - {job.company?.display_name} ({job.location?.display_name})
+                  </a>
+
+                  <p>
+                    £{job.salary_min ?? "N/A"} - £{job.salary_max ?? "N/A"}
+                  </p>
+
+                  {job.distance && (
+                    <p>{(job.distance * 0.621371).toFixed(1)} miles away</p>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+
+        {/* REMOTE JOBS */}
+        {view === "remote" && (
+          <>
+            <h2>Remote Jobs</h2>
+
+            {remoteJobs.length === 0 && !loading && <p>No remote jobs found.</p>}
+
+            <ul>
+              {remoteJobs.map((job, index) => (
+                <li key={job.id || index} style={{ marginBottom: "16px" }}>
+                  <a href={job.redirect_url} target="_blank" rel="noopener noreferrer">
+                    {job.title} - {job.company?.display_name}
+                  </a>
+
+                  <p>{job.location?.display_name || "Remote"}</p>
+
+                  <p>
+                    £{job.salary_min ?? "N/A"} - £{job.salary_max ?? "N/A"}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+      </div>
     </div>
   );
 }
