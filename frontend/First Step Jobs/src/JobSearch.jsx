@@ -15,11 +15,19 @@ export default function JobSearch() {
   const [salaryMax, setSalaryMax] = useState("");
   const [view, setView] = useState("local"); // "local" | "remote"
 
+  const hasPostcode = postcode.trim().length > 0;
+
+  const isValidPostcode = /^[A-Z]{1,2}\d[A-Z\d]? ?\d[A-Z]{2}$/i.test(postcode.trim());
+
+  const canSearch =
+    loading === false &&
+    (view === "remote" || !hasPostcode || isValidPostcode);
+
   const loadJobs = async () => {
     // 🚫 Block invalid postcode
-    const isValidPostcode = /^[A-Z]{1,2}\d[A-Z\d]? ?\d[A-Z]{2}$/i.test(postcode);
+    
 
-    if (postcode && !isValidPostcode) {
+    if (view === "local" && hasPostcode && !isValidPostcode) {
       setError("Please enter a valid postcode (e.g. SW11 1AA)");
       return;
     }
@@ -120,7 +128,7 @@ export default function JobSearch() {
       </div>
 
       {/* Load button */}
-      <button onClick={loadJobs}>
+      <button onClick={loadJobs} disabled={!canSearch}>
         {loading ? "Loading..." : "Search Jobs"}
       </button>
 
