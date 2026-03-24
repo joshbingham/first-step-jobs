@@ -10,9 +10,9 @@ app.use(cors());
 
 const PORT = 5000;
 
-// 📏 Haversine formula (distance between coordinates)
+// 📏 Haversine formula (distance in km)
 function getDistance(lat1, lon1, lat2, lon2) {
-  const R = 6371; // km
+  const R = 6371;
   const dLat = (lat2 - lat1) * (Math.PI / 180);
   const dLon = (lon2 - lon1) * (Math.PI / 180);
 
@@ -24,12 +24,13 @@ function getDistance(lat1, lon1, lat2, lon2) {
       Math.sin(dLon / 2);
 
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c; // km
+  return R * c;
 }
 
 app.get("/jobs", async (req, res) => {
   console.log("🔥 /jobs route hit");
   console.log("REQ QUERY:", req.query);
+
   try {
     const { what, location, distance, minSalary, maxSalary } = req.query;
 
@@ -38,7 +39,7 @@ app.get("/jobs", async (req, res) => {
     let userLat = null;
     let userLon = null;
 
-    // 📍 Convert postcode → lat/lon
+    // 📍 Postcode → lat/lon
     if (location) {
       const geoRes = await axios.get(
         `https://api.postcodes.io/postcodes/${location}`
@@ -48,7 +49,10 @@ app.get("/jobs", async (req, res) => {
       userLon = geoRes.data.result.longitude;
     }
 
-    const response = await axios.get(
+    // =========================
+    // 🧠 1. FETCH ADZUNA
+    // =========================
+    const adzunaRes = await axios.get(
       "https://api.adzuna.com/v1/api/jobs/gb/search/1",
       {
         params: {
@@ -63,52 +67,56 @@ app.get("/jobs", async (req, res) => {
       }
     );
 
+    // =========================
+    // 🧠 2. FETCH REMOTIVE
+    // =========================
     const remotiveRes = await axios.get(
       "https://remotive.com/api/remote-jobs",
       {
         params: {
-          search: what || ""
-        }
+          search: what || "",
+        },
       }
     );
 
     const remotiveJobs = remotiveRes.data.jobs;
 
-    console.log("Remotive jobs count:", remotiveJobs.length);
-    console.log("Sample:", remotiveJobs.slice(0, 2));
-
-
-
-
-    let jobs = [
-      ...response.data.results.map(job => ({
-        ...job,
-        source: "adzuna"
-      })),
-      ...remotiveMapped
-    ];
-
-    const remotiveMapped = remotiveJobs.map(job => ({
+    const remotiveMapped = remotiveJobs.map((job) => ({
       title: job.title,
       company: {
-        display_name: job.company_name
+        display_name: job.company_name,
       },
       location: {
-        display_name: job.candidate_required_location
+        display_name: job.candidate_required_location,
       },
       salary_min: null,
       salary_max: null,
       redirect_url: job.url,
       latitude: null,
       longitude: null,
-      source: "remotive"
+      source: "remotive",
     }));
 
-    // 🎯 Apply REAL distance filter
+    console.log("Remotive jobs:", remotiveMapped.length);
+
+    // =========================
+    // 🔗 3. MERGE JOBS
+    // =========================
+    let jobs = [
+      ...adzunaRes.data.results.map((job) => ({
+        ...job,
+        source: "adzuna",
+      })),
+      ...remotiveMapped,
+    ];
+
+    // =========================
+    // 📍 4. DISTANCE FILTER (Adzuna only)
+    // =========================
     if (userLat && userLon && distanceKm) {
       jobs = jobs
         .map((job) => {
-          if (!job.latitude || !job.longitude) return null;
+          if (!job.latitude || !job.longitude) return job; // keep non-geolocated (Remotive)
 
           const jobDistance = getDistance(
             userLat,
@@ -119,21 +127,35 @@ app.get("/jobs", async (req, res) => {
 
           return {
             ...job,
-            distance: jobDistance, // ✅ attach distance
+            distance: jobDistance,
           };
         })
-        .filter((job) => job && job.distance <= distanceKm);
+        .filter((job) => {
+          if (!job.latitude || !job.longitude) return true; // keep Remotive jobs
+          return job.distance <= distanceKm;
+        });
     }
 
-    // SORT by closest first
-    jobs = jobs.sort((a, b) => a.distance - b.distance);
+    // =========================
+    // 📊 5. SORT (safe)
+    // =========================
+    jobs.sort((a, b) => {
+      const distA = a.distance ?? 999999;
+      const distB = b.distance ?? 999999;
+      return distA - distB;
+    });
 
+    // =========================
+    // 🧪 DEBUG OUTPUT
+    // =========================
     console.log(
-      jobs.slice(0, 5).map(j => ({
+      jobs.slice(0, 5).map((j) => ({
         title: j.title,
-        distance: j.distance
+        source: j.source,
+        distance: j.distance,
       }))
     );
+
     res.json(jobs);
   } catch (error) {
     console.error(
