@@ -28,6 +28,7 @@ export default function JobSearch() {
   // ----------------------------
   const loadJobs = async (mode) => {
     setLoading(true);
+    setLoadingView(mode); // ✅ NEW: track which button is loading
     setError("");
 
     try {
@@ -35,12 +36,14 @@ export default function JobSearch() {
       if (mode === "local" && hasPostcode && !isValidPostcode) {
         setError("Please enter a valid postcode (e.g. SW11 1AA)");
         setLoading(false);
+        setLoadingView(null);
         return;
       }
 
       if (mode === "local" && !hasPostcode) {
         setError("Enter a postcode to search nearby jobs");
         setLoading(false);
+        setLoadingView(null);
         return;
       }
 
@@ -66,6 +69,7 @@ export default function JobSearch() {
       setRemoteJobs(data.remoteJobs || []);
 
       setView(mode);
+
     } catch (err) {
       console.error("Failed to load jobs:", err);
       setLocalJobs([]);
@@ -73,6 +77,7 @@ export default function JobSearch() {
     }
 
     setLoading(false);
+    setLoadingView(null); // ✅ reset button loading state
   };
 
   return (
@@ -148,22 +153,23 @@ export default function JobSearch() {
       )}
 
       {/* ACTION BUTTONS */}
-      <div style={{ marginBottom: "20px" }}>
+      <div style={{ display: "flex", gap: "12px", marginBottom: "16px", justifyContent: "center" }}>
         <button
           onClick={() => loadJobs("local")}
-          disabled={!postcode.trim() || loading}
-          style={{
-            marginRight: "8px",
-            opacity: !postcode.trim() ? 0.5 : 1,
-            cursor: !postcode.trim() ? "not-allowed" : "pointer",
-          }}
-          title={!postcode.trim() ? "Enter a postcode first" : ""}
+          disabled={loading || !postcode.trim()}
         >
-          Near Me Jobs
+          {loading && loadingView === "local"
+            ? "Loading..."
+            : "Near Me Jobs"}
         </button>
 
-        <button onClick={() => loadJobs("remote")} disabled={loading}>
-          Remote Jobs
+        <button
+          onClick={() => loadJobs("remote")}
+          disabled={loading}
+        >
+          {loading && loadingView === "remote"
+            ? "Loading..."
+            : "Remote Jobs"}
         </button>
       </div>
 
