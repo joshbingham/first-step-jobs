@@ -20,7 +20,7 @@ export default function JobSearch() {
       const params = new URLSearchParams();
 
       if (keyword) params.append("what", keyword);
-      if (postcode) params.append("where", postcode);
+      if (postcode) params.append("location", postcode);
       if (radius) params.append("distance", radius);
       if (salaryMin) params.append("salary_min", salaryMin);
       if (salaryMax) params.append("salary_max", salaryMax);
