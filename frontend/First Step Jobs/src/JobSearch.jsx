@@ -17,7 +17,9 @@ export default function JobSearch() {
 
   const loadJobs = async () => {
     // 🚫 Block invalid postcode
-    if (postcode && postcode.trim().length < 6) {
+    const isValidPostcode = /^[A-Z]{1,2}\d[A-Z\d]? ?\d[A-Z]{2}$/i.test(postcode);
+
+    if (postcode && !isValidPostcode) {
       setError("Please enter a valid postcode (e.g. SW11 1AA)");
       return;
     }
