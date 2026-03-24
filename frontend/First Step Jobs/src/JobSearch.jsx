@@ -4,38 +4,36 @@ import { useState } from "react";
 export default function JobSearch() {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedField, setSelectedField] = useState("all"); // job field/category
+
+  // User inputs
+  const [keyword, setKeyword] = useState("");
+  const [postcode, setPostcode] = useState("");
+  const [radius, setRadius] = useState(10);
+  const [salaryMin, setSalaryMin] = useState("");
+  const [salaryMax, setSalaryMax] = useState("");
 
   const loadJobs = async () => {
     setLoading(true);
+
     try {
-      const res = await fetch("http://localhost:5000/jobs");
+      // Build query string dynamically
+      const params = new URLSearchParams();
+
+      if (keyword) params.append("what", keyword);
+      if (postcode) params.append("where", postcode);
+      if (radius) params.append("distance", radius);
+      if (salaryMin) params.append("salary_min", salaryMin);
+      if (salaryMax) params.append("salary_max", salaryMax);
+
+      const res = await fetch(`http://localhost:5000/jobs?${params.toString()}`);
       const data = await res.json();
 
-      const salaryCap = 30000; // Only show jobs up to £30,000
-
-      const filteredJobs = data.filter((job) => {
-        const title = job.title.toLowerCase();
-        const categoryTag = job.category?.tag?.toLowerCase() || "";
-
-        const matchesSalary = job.salary_max && job.salary_max <= salaryCap;
-
-        const matchesSearch =
-          searchTerm === "" ||
-          title.includes(searchTerm.toLowerCase());
-
-        const matchesField =
-          selectedField === "all" || categoryTag === selectedField;
-
-        return matchesSalary && matchesSearch && matchesField;
-      });
-
-      setJobs(filteredJobs);
+      setJobs(data);
     } catch (err) {
       console.error("Failed to load jobs:", err);
       setJobs([]);
     }
+
     setLoading(false);
   };
 
@@ -43,38 +41,69 @@ export default function JobSearch() {
     <div>
       <h1>First Step Jobs</h1>
 
-      {/* Search input */}
-      <input
-        type="text"
-        placeholder="Search by job title..."
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        style={{ marginRight: "8px", padding: "4px" }}
-      />
+      {/* Filters */}
+      <div style={{ marginBottom: "16px" }}>
+        <input
+          type="text"
+          placeholder="Keyword (e.g. developer)"
+          value={keyword}
+          onChange={(e) => setKeyword(e.target.value)}
+          style={{ marginRight: "8px" }}
+        />
 
-      {/* Job field selector */}
-      <select
-        value={selectedField}
-        onChange={(e) => setSelectedField(e.target.value)}
-        style={{ marginRight: "8px", padding: "4px" }}
-      >
-        <option value="all">All Fields</option>
-        <option value="it-jobs">IT Jobs</option>
-        <option value="teaching-jobs">Teaching Jobs</option>
-        {/* Add more fields here if needed */}
-      </select>
+        <input
+          type="text"
+          placeholder="Postcode (e.g. SG5)"
+          value={postcode}
+          onChange={(e) => setPostcode(e.target.value)}
+          style={{ marginRight: "8px" }}
+        />
 
-      {/* Load jobs button */}
-      <button onClick={loadJobs}>{loading ? "Loading..." : "Load Jobs"}</button>
+        <select
+          value={radius}
+          onChange={(e) => setRadius(e.target.value)}
+          style={{ marginRight: "8px" }}
+        >
+          <option value={5}>5 miles</option>
+          <option value={10}>10 miles</option>
+          <option value={20}>20 miles</option>
+          <option value={50}>50 miles</option>
+        </select>
+      </div>
 
-      {/* Jobs list */}
-      <ul>
+      <div style={{ marginBottom: "16px" }}>
+        <input
+          type="number"
+          placeholder="Min Salary"
+          value={salaryMin}
+          onChange={(e) => setSalaryMin(e.target.value)}
+          style={{ marginRight: "8px" }}
+        />
+
+        <input
+          type="number"
+          placeholder="Max Salary"
+          value={salaryMax}
+          onChange={(e) => setSalaryMax(e.target.value)}
+          style={{ marginRight: "8px" }}
+        />
+      </div>
+
+      {/* Load button */}
+      <button onClick={loadJobs}>
+        {loading ? "Loading..." : "Search Jobs"}
+      </button>
+
+      {/* Results */}
+      <ul style={{ marginTop: "20px" }}>
         {jobs.map((job) => (
           <li key={job.id} style={{ marginBottom: "16px" }}>
             <a href={job.redirect_url} target="_blank" rel="noopener noreferrer">
               {job.title} - {job.company.display_name} ({job.location.display_name})
             </a>
-            <p>£{job.salary_min} - £{job.salary_max}</p>
+            <p>
+              £{job.salary_min} - £{job.salary_max}
+            </p>
           </li>
         ))}
       </ul>
