@@ -149,14 +149,28 @@ app.get("/jobs", async (req, res) => {
     // 🧪 DEBUG OUTPUT
     // =========================
     console.log(
-      jobs.slice(0, 5).map((j) => ({
+      jobs.slice(0, 10).map(j => ({
         title: j.title,
         source: j.source,
-        distance: j.distance,
+        lat: j.latitude,
+        lon: j.longitude,
+        distance: j.distance
       }))
     );
 
-    res.json(jobs);
+    const localJobs = jobs
+      .filter(job => job.latitude && job.longitude)
+      .sort((a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity));
+
+    const remoteJobs = jobs.filter(
+      job => job.source === "remotive" || !job.latitude || !job.longitude
+    );
+
+    res.json({
+      localJobs,
+      remoteJobs
+    });
+    
   } catch (error) {
     console.error(
       "Error fetching jobs:",
