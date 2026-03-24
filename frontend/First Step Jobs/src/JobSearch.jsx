@@ -1,54 +1,71 @@
-// JobSearch.jsx
 import { useState } from "react";
 
 export default function JobSearch() {
   const [localJobs, setLocalJobs] = useState([]);
   const [remoteJobs, setRemoteJobs] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [loadingView, setLoadingView] = useState(null);
   const [error, setError] = useState("");
 
-  // User inputs
+  // Inputs
   const [keyword, setKeyword] = useState("");
   const [postcode, setPostcode] = useState("");
   const [radius, setRadius] = useState(10);
   const [salaryMin, setSalaryMin] = useState("");
   const [salaryMax, setSalaryMax] = useState("");
-  const [view, setView] = useState("local"); // "local" | "remote"
 
+  // UI state
+  const [view, setView] = useState("remote"); // default to remote (more forgiving UX)
+
+  // Validation
   const hasPostcode = postcode.trim().length > 0;
 
-  const isValidPostcode = /^[A-Z]{1,2}\d[A-Z\d]? ?\d[A-Z]{2}$/i.test(postcode.trim());
+  const isValidPostcode =
+    /^[A-Z]{1,2}\d[A-Z\d]? ?\d[A-Z]{2}$/i.test(postcode.trim());
 
-  const canSearch =
-    loading === false &&
-    (view === "remote" || !hasPostcode || isValidPostcode);
-
-  const loadJobs = async () => {
-    // 🚫 Block invalid postcode
-    
-
-    if (view === "local" && hasPostcode && !isValidPostcode) {
-      setError("Please enter a valid postcode (e.g. SW11 1AA)");
-      return;
-    }
+  // ----------------------------
+  // MAIN API FUNCTION
+  // ----------------------------
+  const loadJobs = async (mode) => {
     setLoading(true);
+    setError("");
 
     try {
-      // Build query string dynamically
+      // Block invalid local search
+      if (mode === "local" && hasPostcode && !isValidPostcode) {
+        setError("Please enter a valid postcode (e.g. SW11 1AA)");
+        setLoading(false);
+        return;
+      }
+
+      if (mode === "local" && !hasPostcode) {
+        setError("Enter a postcode to search nearby jobs");
+        setLoading(false);
+        return;
+      }
+
       const params = new URLSearchParams();
 
       if (keyword) params.append("what", keyword);
-      if (postcode) params.append("location", postcode);
-      if (radius) params.append("distance", radius);
       if (salaryMin) params.append("salary_min", salaryMin);
       if (salaryMax) params.append("salary_max", salaryMax);
 
-      const res = await fetch(`http://localhost:5000/jobs?${params.toString()}`);
+      // Only local search uses location
+      if (mode === "local") {
+        params.append("location", postcode);
+        params.append("distance", radius);
+      }
+
+      const res = await fetch(
+        `http://localhost:5000/jobs?${params.toString()}`
+      );
+
       const data = await res.json();
 
-      setLocalJobs(data.localJobs);
-      setRemoteJobs(data.remoteJobs);
-      console.log("API response:", data);
+      setLocalJobs(data.localJobs || []);
+      setRemoteJobs(data.remoteJobs || []);
+
+      setView(mode);
     } catch (err) {
       console.error("Failed to load jobs:", err);
       setLocalJobs([]);
@@ -62,7 +79,7 @@ export default function JobSearch() {
     <div>
       <h1>First Step Jobs</h1>
 
-      {/* Filters */}
+      {/* INPUTS */}
       <div style={{ marginBottom: "16px" }}>
         <input
           type="text"
@@ -80,22 +97,15 @@ export default function JobSearch() {
             const value = e.target.value;
             setPostcode(value);
 
-            const isValidPostcode = /^[A-Z]{1,2}\d[A-Z\d]? ?\d[A-Z]{2}$/i.test(value);
+            const valid =
+              /^[A-Z]{1,2}\d[A-Z\d]? ?\d[A-Z]{2}$/i.test(value);
 
-            if (isValidPostcode || value.trim() === "") {
-              setError(""); // ✅ clear error when valid or empty
+            if (valid || value.trim() === "") {
+              setError("");
             }
           }}
           style={{ marginRight: "8px" }}
         />
-
-        {postcode && postcode.trim().length < 6 && (
-          <p style={{ color: "gray", marginTop: "6px" }}>
-            💡 Tip: Enter a full postcode (e.g. SW11 1AA) to see jobs.
-          </p>
-        )}
-
-        {error && <p style={{ color: "red" }}>{error}</p>}
 
         <select
           value={radius}
@@ -109,6 +119,7 @@ export default function JobSearch() {
         </select>
       </div>
 
+      {/* SALARY */}
       <div style={{ marginBottom: "16px" }}>
         <input
           type="number"
@@ -127,33 +138,56 @@ export default function JobSearch() {
         />
       </div>
 
-      {/* Load button */}
-      <button onClick={loadJobs} disabled={!canSearch}>
-        {loading ? "Loading..." : "Search Jobs"}
-      </button>
+      {/* ERROR + HELP */}
+      {error && <p style={{ color: "red" }}>{error}</p>}
 
-      {/* Results */}
-      <div style={{ marginTop: "20px" }}>
-        {/* Toggle buttons */}
-        <button onClick={() => setView("local")} style={{ marginRight: "8px" }}>
+      {!postcode.trim() && (
+        <p style={{ color: "gray" }}>
+          Enter a postcode to enable “Near Me Jobs”
+        </p>
+      )}
+
+      {/* ACTION BUTTONS */}
+      <div style={{ marginBottom: "20px" }}>
+        <button
+          onClick={() => loadJobs("local")}
+          disabled={!postcode.trim() || loading}
+          style={{
+            marginRight: "8px",
+            opacity: !postcode.trim() ? 0.5 : 1,
+            cursor: !postcode.trim() ? "not-allowed" : "pointer",
+          }}
+          title={!postcode.trim() ? "Enter a postcode first" : ""}
+        >
           Near Me Jobs
         </button>
-        <button onClick={() => setView("remote")}>
+
+        <button onClick={() => loadJobs("remote")} disabled={loading}>
           Remote Jobs
         </button>
+      </div>
 
-        {/* LOCAL JOBS */}
+      {/* RESULTS */}
+      <div>
+        {/* LOCAL */}
         {view === "local" && (
           <>
             <h2>Jobs Near You</h2>
 
-            {localJobs.length === 0 && !loading && <p>No local jobs found.</p>}
+            {localJobs.length === 0 && !loading && (
+              <p>No local jobs found.</p>
+            )}
 
             <ul>
               {localJobs.map((job, index) => (
-                <li key={job.id || index} style={{ marginBottom: "16px" }}>
-                  <a href={job.redirect_url} target="_blank" rel="noopener noreferrer">
-                    {job.title} - {job.company?.display_name} ({job.location?.display_name})
+                <li key={job.id || index}>
+                  <a
+                    href={job.redirect_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {job.title} - {job.company?.display_name} (
+                    {job.location?.display_name})
                   </a>
 
                   <p>
@@ -161,7 +195,9 @@ export default function JobSearch() {
                   </p>
 
                   {job.distance && (
-                    <p>{(job.distance * 0.621371).toFixed(1)} miles away</p>
+                    <p>
+                      {(job.distance * 0.621371).toFixed(1)} miles away
+                    </p>
                   )}
                 </li>
               ))}
@@ -169,17 +205,23 @@ export default function JobSearch() {
           </>
         )}
 
-        {/* REMOTE JOBS */}
+        {/* REMOTE */}
         {view === "remote" && (
           <>
             <h2>Remote Jobs</h2>
 
-            {remoteJobs.length === 0 && !loading && <p>No remote jobs found.</p>}
+            {remoteJobs.length === 0 && !loading && (
+              <p>No remote jobs found.</p>
+            )}
 
             <ul>
               {remoteJobs.map((job, index) => (
-                <li key={job.id || index} style={{ marginBottom: "16px" }}>
-                  <a href={job.redirect_url} target="_blank" rel="noopener noreferrer">
+                <li key={job.id || index}>
+                  <a
+                    href={job.redirect_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     {job.title} - {job.company?.display_name}
                   </a>
 

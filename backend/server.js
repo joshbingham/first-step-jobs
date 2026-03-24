@@ -32,7 +32,10 @@ app.get("/jobs", async (req, res) => {
   console.log("REQ QUERY:", req.query);
 
   try {
-    const { what, location, distance, minSalary, maxSalary } = req.query;
+    const { what, location, distance, salary_min, salary_max } = req.query;
+
+    const minSalary = salary_min ? Number(salary_min) : null;
+    const maxSalary = salary_max ? Number(salary_max) : null;
 
     const distanceKm = distance ? Number(distance) * 1.609 : null;
 
@@ -41,12 +44,19 @@ app.get("/jobs", async (req, res) => {
 
     // 📍 Postcode → lat/lon
     if (location) {
-      const geoRes = await axios.get(
-        `https://api.postcodes.io/postcodes/${location}`
-      );
+      try {
+        const geoRes = await axios.get(
+          `https://api.postcodes.io/postcodes/${location}`
+        );
 
-      userLat = geoRes.data.result.latitude;
-      userLon = geoRes.data.result.longitude;
+        userLat = geoRes.data.result.latitude;
+        userLon = geoRes.data.result.longitude;
+
+      } catch (err) {
+        console.log("⚠️ Invalid postcode, skipping distance filter");
+        userLat = null;
+        userLon = null;
+      }
     }
 
     // =========================
@@ -111,7 +121,24 @@ app.get("/jobs", async (req, res) => {
     ];
 
     // =========================
-    // 📍 4. DISTANCE FILTER (Adzuna only)
+    // 💰 4. SALARY FILTER
+    // =========================
+    if (minSalary !== null) {
+      jobs = jobs.filter(job => {
+        if (!job.salary_min) return true; // keep remotive / unknown salaries
+        return job.salary_min >= minSalary;
+      });
+    }
+
+    if (maxSalary !== null) {
+      jobs = jobs.filter(job => {
+        if (!job.salary_max) return true;
+        return job.salary_max <= maxSalary;
+      });
+    }
+
+    // =========================
+    // 📍 5. DISTANCE FILTER (Adzuna only)
     // =========================
     if (userLat && userLon && distanceKm) {
       jobs = jobs
@@ -137,7 +164,7 @@ app.get("/jobs", async (req, res) => {
     }
 
     // =========================
-    // 📊 5. SORT (safe)
+    // 📊 6. SORT (safe)
     // =========================
     jobs.sort((a, b) => {
       const distA = a.distance ?? 999999;
@@ -170,7 +197,7 @@ app.get("/jobs", async (req, res) => {
       localJobs,
       remoteJobs
     });
-    
+
   } catch (error) {
     console.error(
       "Error fetching jobs:",
