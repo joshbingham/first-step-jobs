@@ -28,7 +28,8 @@ export default function JobSearch() {
       const res = await fetch(`http://localhost:5000/jobs?${params.toString()}`);
       const data = await res.json();
 
-      setJobs(data);
+      setJobs(Array.isArray(data) ? data : []);
+      console.log("API response:", data);
     } catch (err) {
       console.error("Failed to load jobs:", err);
       setJobs([]);

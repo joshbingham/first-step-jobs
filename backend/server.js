@@ -28,8 +28,12 @@ function getDistance(lat1, lon1, lat2, lon2) {
 }
 
 app.get("/jobs", async (req, res) => {
+  console.log("🔥 /jobs route hit");
+  console.log("REQ QUERY:", req.query);
   try {
-    const { keyword, location, distance, minSalary, maxSalary } = req.query;
+    const { what, location, distance, minSalary, maxSalary } = req.query;
+
+    const distanceKm = distance ? Number(distance) * 1.609 : null;
 
     let userLat = null;
     let userLon = null;
@@ -50,7 +54,7 @@ app.get("/jobs", async (req, res) => {
         params: {
           app_id: process.env.ADZUNA_APP_ID,
           app_key: process.env.ADZUNA_APP_KEY,
-          what: keyword || "",
+          what: what || "",
           where: location || "",
           results_per_page: 50,
           salary_min: minSalary || undefined,
@@ -59,24 +63,77 @@ app.get("/jobs", async (req, res) => {
       }
     );
 
-    let jobs = response.data.results;
+    const remotiveRes = await axios.get(
+      "https://remotive.com/api/remote-jobs",
+      {
+        params: {
+          search: what || ""
+        }
+      }
+    );
+
+    const remotiveJobs = remotiveRes.data.jobs;
+
+    console.log("Remotive jobs count:", remotiveJobs.length);
+    console.log("Sample:", remotiveJobs.slice(0, 2));
+
+
+
+
+    let jobs = [
+      ...response.data.results.map(job => ({
+        ...job,
+        source: "adzuna"
+      })),
+      ...remotiveMapped
+    ];
+
+    const remotiveMapped = remotiveJobs.map(job => ({
+      title: job.title,
+      company: {
+        display_name: job.company_name
+      },
+      location: {
+        display_name: job.candidate_required_location
+      },
+      salary_min: null,
+      salary_max: null,
+      redirect_url: job.url,
+      latitude: null,
+      longitude: null,
+      source: "remotive"
+    }));
 
     // 🎯 Apply REAL distance filter
-    if (userLat && userLon && distance) {
-      jobs = jobs.filter((job) => {
-        if (!job.latitude || !job.longitude) return false;
+    if (userLat && userLon && distanceKm) {
+      jobs = jobs
+        .map((job) => {
+          if (!job.latitude || !job.longitude) return null;
 
-        const jobDistance = getDistance(
-          userLat,
-          userLon,
-          job.latitude,
-          job.longitude
-        );
+          const jobDistance = getDistance(
+            userLat,
+            userLon,
+            job.latitude,
+            job.longitude
+          );
 
-        return jobDistance <= distance;
-      });
+          return {
+            ...job,
+            distance: jobDistance, // ✅ attach distance
+          };
+        })
+        .filter((job) => job && job.distance <= distanceKm);
     }
 
+    // SORT by closest first
+    jobs = jobs.sort((a, b) => a.distance - b.distance);
+
+    console.log(
+      jobs.slice(0, 5).map(j => ({
+        title: j.title,
+        distance: j.distance
+      }))
+    );
     res.json(jobs);
   } catch (error) {
     console.error(
