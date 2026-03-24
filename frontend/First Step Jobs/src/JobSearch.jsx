@@ -5,6 +5,7 @@ export default function JobSearch() {
   const [localJobs, setLocalJobs] = useState([]);
   const [remoteJobs, setRemoteJobs] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   // User inputs
   const [keyword, setKeyword] = useState("");
@@ -15,6 +16,11 @@ export default function JobSearch() {
   const [view, setView] = useState("local"); // "local" | "remote"
 
   const loadJobs = async () => {
+    // 🚫 Block invalid postcode
+    if (postcode && postcode.trim().length < 6) {
+      setError("Please enter a valid postcode (e.g. SW11 1AA)");
+      return;
+    }
     setLoading(true);
 
     try {
@@ -58,11 +64,28 @@ export default function JobSearch() {
 
         <input
           type="text"
-          placeholder="Postcode (e.g. SG5)"
+          placeholder="Postcode (e.g. SW11 1AA)"
           value={postcode}
-          onChange={(e) => setPostcode(e.target.value)}
+          onChange={(e) => {
+            const value = e.target.value;
+            setPostcode(value);
+
+            const isValidPostcode = /^[A-Z]{1,2}\d[A-Z\d]? ?\d[A-Z]{2}$/i.test(value);
+
+            if (isValidPostcode || value.trim() === "") {
+              setError(""); // ✅ clear error when valid or empty
+            }
+          }}
           style={{ marginRight: "8px" }}
         />
+
+        {postcode && postcode.trim().length < 6 && (
+          <p style={{ color: "gray", marginTop: "6px" }}>
+            💡 Tip: Enter a full postcode (e.g. SW11 1AA) to see jobs.
+          </p>
+        )}
+
+        {error && <p style={{ color: "red" }}>{error}</p>}
 
         <select
           value={radius}
