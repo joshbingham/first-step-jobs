@@ -187,6 +187,8 @@ app.get("/jobs", async (req, res) => {
       }))
     );
 
+    console.log(jobs[0].created);
+
     const localJobs = jobs
       .filter(job => job.latitude && job.longitude)
       .sort((a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity));
