@@ -336,19 +336,19 @@ export default function JobSearch() {
             <h2>Saved Jobs</h2>
 
             {savedJobs.length === 0 && <p>No saved jobs yet.</p>}
+            {view === "saved" && savedJobs.length > 0 && (
+              <div style={{ marginBottom: "16px", textAlign: "center" }}>
+                <label style={{ marginRight: "8px" }}>Sort saved jobs:</label>
 
-            <div style={{ marginBottom: "16px", textAlign: "center" }}>
-              <label style={{ marginRight: "8px" }}>Sort saved jobs:</label>
-
-              <select
-                value={savedSortBy}
-                onChange={(e) => setSavedSortBy(e.target.value)}
-              >
-                <option value="date">Newest first</option>
-                <option value="distance">Closest first</option>
-              </select>
-            </div>
-
+                <select
+                  value={savedSortBy}
+                  onChange={(e) => setSavedSortBy(e.target.value)}
+                >
+                  <option value="date">Newest first</option>
+                  <option value="distance">Closest first</option>
+                </select>
+              </div>
+            )}
             <ul>
               {sortedSavedJobs.map((job, index) => (
           
