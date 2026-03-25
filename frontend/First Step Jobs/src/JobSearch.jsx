@@ -46,6 +46,8 @@ export default function JobSearch() {
     return savedJobs.some(j => j.id === job.id);
   };
 
+  
+
   // Validation
   const hasPostcode = postcode.trim().length > 0;
 
@@ -130,6 +132,44 @@ export default function JobSearch() {
     // default: newest first
     return new Date(b.created || 0) - new Date(a.created || 0);
   });
+
+  const getMatchDetails = (job) => {
+    let score = 50;
+    const reasons = [];
+
+    // 1. Keyword match
+    if (keyword && job.title?.toLowerCase().includes(keyword.toLowerCase())) {
+      score += 20;
+      reasons.push("Matches your keyword");
+    }
+
+    // 2. Salary match
+    if (salaryMin && job.salary_min >= salaryMin) {
+      score += 10;
+      reasons.push("Salary meets your minimum");
+    }
+
+    if (salaryMax && job.salary_max <= salaryMax) {
+      score += 10;
+      reasons.push("Within your salary range");
+    }
+
+    // 3. Distance
+    if (job.distance) {
+      if (job.distance <= radius) {
+        score += 10;
+        reasons.push("Close to your location");
+      } else {
+        score -= 10;
+        reasons.push("Further than preferred distance");
+      }
+    }
+
+    return {
+      score: Math.max(0, Math.min(100, score)),
+      reasons,
+    };
+  };
 
   return (
     <div>
@@ -253,7 +293,10 @@ export default function JobSearch() {
             )}
 
             <ul>
-              {sortedLocalJobs.map((job, index) => (
+              {sortedLocalJobs.map((job, index) => {
+                const match = getMatchDetails(job);
+                
+                return (
                 <li key={job.id || index}>
                   <a
                     href={job.redirect_url}
@@ -263,6 +306,17 @@ export default function JobSearch() {
                     {job.title} - {job.company?.display_name} (
                     {job.location?.display_name})
                   </a>
+
+                  <p>⭐ Match: {match.score}%</p>
+
+                  <ul style={{ paddingLeft: "16px", marginTop: "4px" }}>
+                    {match.reasons.map((reason, i) => (
+                      <li key={i} style={{ fontSize: "0.9em", color: "gray" }}>
+                        ✔ {reason}
+                      </li>
+                    ))}
+                  </ul>
+
 
                   <p>
                     £{job.salary_min ?? "N/A"} - £{job.salary_max ?? "N/A"}
@@ -286,7 +340,8 @@ export default function JobSearch() {
                   </button>
 
                 </li>
-              ))}
+                );
+              })}
             </ul>
           </>
         )}
@@ -301,7 +356,11 @@ export default function JobSearch() {
             )}
 
             <ul>
-              {sortedRemoteJobs.map((job, index) => (
+              {sortedRemoteJobs.map((job, index) => {
+
+                const match = getMatchDetails(job);
+                
+                return (
                 <li key={job.id || index}>
                   <a
                     href={job.redirect_url}
@@ -310,6 +369,16 @@ export default function JobSearch() {
                   >
                     {job.title} - {job.company?.display_name}
                   </a>
+
+                  <p>⭐ Match: {match.score}%</p>
+
+                  <ul style={{ paddingLeft: "16px", marginTop: "4px" }}>
+                    {match.reasons.map((reason, i) => (
+                      <li key={i} style={{ fontSize: "0.9em", color: "gray" }}>
+                        ✔ {reason}
+                      </li>
+                    ))}
+                  </ul>
 
                   <p>{job.location?.display_name || "Remote"}</p>
                   
@@ -326,8 +395,9 @@ export default function JobSearch() {
                     {isSaved(job) ? "★ Saved" : "☆ Save"}
                   </button>
 
-                </li>
-              ))}
+              </li>
+              );
+            })}
             </ul>
           </>
         )}
