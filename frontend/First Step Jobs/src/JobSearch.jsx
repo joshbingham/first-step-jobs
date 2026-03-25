@@ -22,6 +22,27 @@ export default function JobSearch() {
   // UI state
   const [view, setView] = useState("remote"); // default to remote (more forgiving UX)
 
+  // Save/Unsave jobs
+  const toggleSaveJob = (job) => {
+    const exists = savedJobs.find(j => j.id === job.id);
+
+    let updated;
+
+    if (exists) {
+      updated = savedJobs.filter(j => j.id !== job.id);
+    } else {
+      updated = [...savedJobs, job];
+    }
+
+    setSavedJobs(updated);
+    localStorage.setItem("savedJobs", JSON.stringify(updated));
+  };
+
+  // Check if a job is saved
+  const isSaved = (jobId) => {
+    return savedJobs.some(j => j.id === jobId);
+  };
+
   // Validation
   const hasPostcode = postcode.trim().length > 0;
 
@@ -240,6 +261,10 @@ export default function JobSearch() {
                     </p>
                   )}
 
+                  <button onClick={() => toggleSaveJob(job)}>
+                    {isSaved(job.id) ? "★ Saved" : "☆ Save"}
+                  </button>
+
                 </li>
               ))}
             </ul>
@@ -280,6 +305,11 @@ export default function JobSearch() {
                       Posted: {new Date(job.created).toLocaleDateString()}
                     </p>
                   )}
+
+                  <button onClick={() => toggleSaveJob(job)}>
+                    {isSaved(job.id) ? "★ Saved" : "☆ Save"}
+                  </button>
+                  
                 </li>
               ))}
             </ul>
