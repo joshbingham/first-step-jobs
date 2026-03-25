@@ -7,6 +7,10 @@ export default function JobSearch() {
   const [loadingView, setLoadingView] = useState(null);
   const [error, setError] = useState("");
   const [sortBy, setSortBy] = useState("distance"); // "date" or "distance"
+  const [savedJobs, setSavedJobs] = useState(() => {
+    const stored = localStorage.getItem("savedJobs");
+    return stored ? JSON.parse(stored) : [];
+  });
 
   // Inputs
   const [keyword, setKeyword] = useState("");
