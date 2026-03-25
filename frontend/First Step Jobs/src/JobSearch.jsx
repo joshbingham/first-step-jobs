@@ -111,28 +111,6 @@ export default function JobSearch() {
     setLoadingView(null); // ✅ reset button loading state
   };
 
-  const sortedLocalJobs = [...localJobs].sort((a, b) => {
-    if (sortBy === "date") {
-      return new Date(b.created || 0) - new Date(a.created || 0);
-    }
-
-    // default: distance
-    return (a.distance ?? Infinity) - (b.distance ?? Infinity);
-  });
-
-  const sortedRemoteJobs = [...remoteJobs].sort((a, b) => {
-      return new Date(b.created || 0) - new Date(a.created || 0);
-    });
-
-    const sortedSavedJobs = [...savedJobs].sort((a, b) => {
-    if (savedSortBy === "distance") {
-      return (a.distance ?? Infinity) - (b.distance ?? Infinity);
-    }
-
-    // default: newest first
-    return new Date(b.created || 0) - new Date(a.created || 0);
-  });
-
   const getMatchDetails = (job) => {
     let score = 50;
     const reasons = [];
@@ -170,6 +148,42 @@ export default function JobSearch() {
       reasons,
     };
   };
+
+  const sortedLocalJobs = [...localJobs].sort((a, b) => {
+
+    if (sortBy === "match") {
+      return (
+        getMatchDetails(b).score - getMatchDetails(a).score
+      );
+    }
+
+    if (sortBy === "date") {
+      return new Date(b.created || 0) - new Date(a.created || 0);
+    }
+
+    // default: distance
+    return (a.distance ?? Infinity) - (b.distance ?? Infinity);
+  });
+
+  const sortedRemoteJobs = [...remoteJobs].sort((a, b) => {
+    if (sortBy === "match") {
+      return getMatchDetails(b).score - getMatchDetails(a).score;
+    }
+
+    // default: newest first
+    return new Date(b.created || 0) - new Date(a.created || 0);
+  });
+
+  const sortedSavedJobs = [...savedJobs].sort((a, b) => {
+    if (savedSortBy === "distance") {
+      return (a.distance ?? Infinity) - (b.distance ?? Infinity);
+    }
+
+    // default: newest first
+    return new Date(b.created || 0) - new Date(a.created || 0);
+  });
+
+  
 
   return (
     <div>
@@ -273,6 +287,8 @@ export default function JobSearch() {
           <label style={{ marginRight: "8px" }}>Sort by:</label>
 
           <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+            <option value="match">Best match</option>
+
             {view === "local" && (
               <option value="distance">Closest first</option>
             )}
@@ -414,6 +430,7 @@ export default function JobSearch() {
                   value={savedSortBy}
                   onChange={(e) => setSavedSortBy(e.target.value)}
                 >
+                  <option value="match">Best match</option>
                   <option value="date">Newest first</option>
                   <option value="distance">Closest first</option>
                 </select>
