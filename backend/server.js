@@ -116,6 +116,7 @@ app.get("/jobs", async (req, res) => {
       ...adzunaRes.data.results.map((job) => ({
         ...job,
         source: "adzuna",
+        created: job.created,
       })),
       ...remotiveMapped,
     ];
