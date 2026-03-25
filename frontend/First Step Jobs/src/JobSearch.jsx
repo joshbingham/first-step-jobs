@@ -11,6 +11,8 @@ export default function JobSearch() {
     const stored = localStorage.getItem("savedJobs");
     return stored ? JSON.parse(stored) : [];
   });
+  
+
 
   // Inputs
   const [keyword, setKeyword] = useState("");
@@ -39,8 +41,8 @@ export default function JobSearch() {
   };
 
   // Check if a job is saved
-  const isSaved = (jobId) => {
-    return savedJobs.some(j => j.id === jobId);
+  const isSaved = (job) => {
+    return savedJobs.some(j => j.id === job.id);
   };
 
   // Validation
@@ -212,11 +214,17 @@ export default function JobSearch() {
         </button>
       </div>
 
+      <button onClick={() => setView("saved")}>
+        Saved Jobs ({savedJobs.length})
+      </button>
+
       <div style={{ marginBottom: "16px", textAlign: "center" }}>
         <label style={{ marginRight: "8px" }}>Sort by:</label>
 
         <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
-          <option value="distance">Closest first</option>
+          {view === "local" && (
+            <option value="distance">Closest first</option>
+          )}
           <option value="date">Newest first</option>
         </select>
       </div>
@@ -262,7 +270,7 @@ export default function JobSearch() {
                   )}
 
                   <button onClick={() => toggleSaveJob(job)}>
-                    {isSaved(job.id) ? "★ Saved" : "☆ Save"}
+                    {isSaved(job) ? "★ Saved" : "☆ Save"}
                   </button>
 
                 </li>
@@ -292,11 +300,7 @@ export default function JobSearch() {
                   </a>
 
                   <p>{job.location?.display_name || "Remote"}</p>
-                  {job.created && (
-                    <p>
-                      Posted: {new Date(job.created).toLocaleDateString()}
-                    </p>
-                  )}
+                  
                   <p>
                     £{job.salary_min ?? "N/A"} - £{job.salary_max ?? "N/A"}
                   </p>
@@ -307,9 +311,42 @@ export default function JobSearch() {
                   )}
 
                   <button onClick={() => toggleSaveJob(job)}>
-                    {isSaved(job.id) ? "★ Saved" : "☆ Save"}
+                    {isSaved(job) ? "★ Saved" : "☆ Save"}
                   </button>
-                  
+
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+        {view === "saved" && (
+          <>
+            <h2>Saved Jobs</h2>
+
+            {savedJobs.length === 0 && <p>No saved jobs yet.</p>}
+
+            <ul>
+              {savedJobs.map((job, index) => (
+                <li key={job.id || index}>
+                  <a href={job.redirect_url} target="_blank" rel="noopener noreferrer">
+                    {job.title} - {job.company?.display_name}
+                  </a>
+
+                  <p>{job.location?.display_name || "Remote"}</p>
+
+                  <p>
+                    £{job.salary_min ?? "N/A"} - £{job.salary_max ?? "N/A"}
+                  </p>
+
+                  {job.created && (
+                    <p>
+                      Posted: {new Date(job.created).toLocaleDateString()}
+                    </p>
+                  )}
+
+                  <button onClick={() => toggleSaveJob(job)}>
+                    Remove
+                  </button>
                 </li>
               ))}
             </ul>
