@@ -105,6 +105,7 @@ app.get("/jobs", async (req, res) => {
       latitude: null,
       longitude: null,
       source: "remotive",
+      created: job.publication_date,
     }));
 
     console.log("Remotive jobs:", remotiveMapped.length);
