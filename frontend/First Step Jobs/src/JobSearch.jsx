@@ -236,6 +236,11 @@ export default function JobSearch() {
                   <p>
                     £{job.salary_min ?? "N/A"} - £{job.salary_max ?? "N/A"}
                   </p>
+                  {job.created && (
+                    <p>
+                      Posted: {new Date(job.created).toLocaleDateString()}
+                    </p>
+                  )}
                 </li>
               ))}
             </ul>
