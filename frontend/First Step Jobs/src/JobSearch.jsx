@@ -81,6 +81,19 @@ export default function JobSearch() {
     setLoadingView(null); // ✅ reset button loading state
   };
 
+  const sortedLocalJobs = [...localJobs].sort((a, b) => {
+    if (sortBy === "date") {
+      return new Date(b.created || 0) - new Date(a.created || 0);
+    }
+
+    // default: distance
+    return (a.distance ?? Infinity) - (b.distance ?? Infinity);
+  });
+
+  const sortedRemoteJobs = [...remoteJobs].sort((a, b) => {
+    return new Date(b.created || 0) - new Date(a.created || 0);
+  });
+
   return (
     <div>
       <h1>First Step Jobs</h1>
@@ -195,7 +208,7 @@ export default function JobSearch() {
             )}
 
             <ul>
-              {localJobs.map((job, index) => (
+              {sortedLocalJobs.map((job, index) => (
                 <li key={job.id || index}>
                   <a
                     href={job.redirect_url}
@@ -239,7 +252,7 @@ export default function JobSearch() {
             )}
 
             <ul>
-              {remoteJobs.map((job, index) => (
+              {sortedRemoteJobs.map((job, index) => (
                 <li key={job.id || index}>
                   <a
                     href={job.redirect_url}
