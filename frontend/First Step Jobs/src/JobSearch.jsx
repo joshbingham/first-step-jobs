@@ -11,6 +11,7 @@ export default function JobSearch() {
     const stored = localStorage.getItem("savedJobs");
     return stored ? JSON.parse(stored) : [];
   });
+  const [savedSortBy, setSavedSortBy] = useState("date"); 
   
 
 
@@ -118,6 +119,15 @@ export default function JobSearch() {
   });
 
   const sortedRemoteJobs = [...remoteJobs].sort((a, b) => {
+      return new Date(b.created || 0) - new Date(a.created || 0);
+    });
+
+    const sortedSavedJobs = [...savedJobs].sort((a, b) => {
+    if (savedSortBy === "distance") {
+      return (a.distance ?? Infinity) - (b.distance ?? Infinity);
+    }
+
+    // default: newest first
     return new Date(b.created || 0) - new Date(a.created || 0);
   });
 
@@ -218,17 +228,19 @@ export default function JobSearch() {
         Saved Jobs ({savedJobs.length})
       </button>
 
-      <div style={{ marginBottom: "16px", textAlign: "center" }}>
-        <label style={{ marginRight: "8px" }}>Sort by:</label>
+      {view !== "saved" && (
+        <div style={{ marginBottom: "16px", textAlign: "center" }}>
+          <label style={{ marginRight: "8px" }}>Sort by:</label>
 
-        <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
-          {view === "local" && (
-            <option value="distance">Closest first</option>
-          )}
-          <option value="date">Newest first</option>
-        </select>
-      </div>
-
+          <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+            {view === "local" && (
+              <option value="distance">Closest first</option>
+            )}
+            <option value="date">Newest first</option>
+          </select>
+        </div>
+      )}
+      
       {/* RESULTS */}
       <div>
         {/* LOCAL */}
@@ -325,18 +337,40 @@ export default function JobSearch() {
 
             {savedJobs.length === 0 && <p>No saved jobs yet.</p>}
 
-            <ul>
-              {savedJobs.map((job, index) => (
-                <li key={job.id || index}>
-                  <a href={job.redirect_url} target="_blank" rel="noopener noreferrer">
-                    {job.title} - {job.company?.display_name}
-                  </a>
+            <div style={{ marginBottom: "16px", textAlign: "center" }}>
+              <label style={{ marginRight: "8px" }}>Sort saved jobs:</label>
 
-                  <p>{job.location?.display_name || "Remote"}</p>
+              <select
+                value={savedSortBy}
+                onChange={(e) => setSavedSortBy(e.target.value)}
+              >
+                <option value="date">Newest first</option>
+                <option value="distance">Closest first</option>
+              </select>
+            </div>
+
+            <ul>
+              {sortedSavedJobs.map((job, index) => (
+          
+                <li key={job.id || index}>
+                  <a
+                    href={job.redirect_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {job.title} - {job.company?.display_name} (
+                    {job.location?.display_name})
+                  </a>
 
                   <p>
                     £{job.salary_min ?? "N/A"} - £{job.salary_max ?? "N/A"}
                   </p>
+
+                  {job.distance && (
+                    <p>
+                      {(job.distance * 0.621371).toFixed(1)} miles away
+                    </p>
+                  )}
 
                   {job.created && (
                     <p>
