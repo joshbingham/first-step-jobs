@@ -200,11 +200,19 @@ export default function JobSearch() {
                     £{job.salary_min ?? "N/A"} - £{job.salary_max ?? "N/A"}
                   </p>
 
+
                   {job.distance && (
                     <p>
                       {(job.distance * 0.621371).toFixed(1)} miles away
                     </p>
                   )}
+
+                  {job.created && (
+                    <p>
+                      Posted: {new Date(job.created).toLocaleDateString()}
+                    </p>
+                  )}
+                  
                 </li>
               ))}
             </ul>
@@ -232,7 +240,11 @@ export default function JobSearch() {
                   </a>
 
                   <p>{job.location?.display_name || "Remote"}</p>
-
+                  {job.created && (
+                    <p>
+                      Posted: {new Date(job.created).toLocaleDateString()}
+                    </p>
+                  )}
                   <p>
                     £{job.salary_min ?? "N/A"} - £{job.salary_max ?? "N/A"}
                   </p>
