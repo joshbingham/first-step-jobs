@@ -6,6 +6,7 @@ export default function JobSearch() {
   const [loading, setLoading] = useState(false);
   const [loadingView, setLoadingView] = useState(null);
   const [error, setError] = useState("");
+  const [sortBy, setSortBy] = useState("distance"); // "date" or "distance"
 
   // Inputs
   const [keyword, setKeyword] = useState("");
@@ -173,6 +174,15 @@ export default function JobSearch() {
         </button>
       </div>
 
+      <div style={{ marginBottom: "16px", textAlign: "center" }}>
+        <label style={{ marginRight: "8px" }}>Sort by:</label>
+
+        <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+          <option value="distance">Closest first</option>
+          <option value="date">Newest first</option>
+        </select>
+      </div>
+
       {/* RESULTS */}
       <div>
         {/* LOCAL */}
@@ -212,7 +222,7 @@ export default function JobSearch() {
                       Posted: {new Date(job.created).toLocaleDateString()}
                     </p>
                   )}
-                  
+
                 </li>
               ))}
             </ul>
