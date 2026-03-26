@@ -353,7 +353,7 @@ export default function JobSearch() {
 
             {usedRadius > radius && (
               <p style={{ color: "gray" }}>
-                Showing jobs within {usedRadius} miles (expanded from {radius})
+                Showing jobs within {usedRadius} miles (expanded from {radius} miles)
               </p>
             )}
 
@@ -380,8 +380,16 @@ export default function JobSearch() {
 
                   <ul style={{ paddingLeft: "16px", marginTop: "4px" }}>
                     {match.reasons.map((reason, i) => (
-                      <li key={i} style={{ fontSize: "0.9em", color: "gray" }}>
-                        ✔ {reason}
+                      <li
+                        key={i}
+                        style={{
+                          fontSize: "0.9em",
+                          color: reason.includes("Far") || reason.includes("Outside")
+                            ? "tomato"
+                            : "gray"
+                        }}
+                      >
+                        {reason.includes("Far") || reason.includes("Outside") ? "⚠" : "✔"} {reason}
                       </li>
                     ))}
                   </ul>
