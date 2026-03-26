@@ -129,21 +129,30 @@ export default function JobSearch() {
       }
     }
 
-    // 2. Salary match
-    if (salaryMin && job.salary_min) {
-      const diff = job.salary_min - salaryMin;
+  // 2. Salary match (range overlap)
+  if ((salaryMin || salaryMax) && job.salary_min && job.salary_max) {
+    const jobMin = job.salary_min;
+    const jobMax = job.salary_max;
 
-      if (diff >= 0) {
-        score += 15;
-        reasons.push("Salary meets your expectation");
-      } else if (diff > -5000) {
+    const userMin = salaryMin || 0;
+    const userMax = salaryMax || Infinity;
+
+    const overlaps = jobMax >= userMin && jobMin <= userMax;
+
+    if (overlaps) {
+      score += 15;
+      reasons.push("Salary overlaps your range");
+
+      // Bonus: stronger match if fully inside range
+      if (jobMin >= userMin && jobMax <= userMax) {
         score += 5;
-        reasons.push("Slightly below your salary expectation");
-      } else {
-        score -= 10;
-        reasons.push("Below your salary expectation");
+        reasons.push("Fully within your salary range");
       }
+    } else {
+      score -= 10;
+      reasons.push("Outside your salary range");
     }
+  }
 
     // 3. Distance
     if (job.distance && radius) {

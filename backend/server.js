@@ -62,19 +62,27 @@ app.get("/jobs", async (req, res) => {
     // =========================
     // 🧠 1. FETCH ADZUNA
     // =========================
-    const adzunaRes = await axios.get(
-      "https://api.adzuna.com/v1/api/jobs/gb/search/1",
-      {
-        params: {
-          app_id: process.env.ADZUNA_APP_ID,
-          app_key: process.env.ADZUNA_APP_KEY,
-          what: what || "",
-          where: location || "",
-          results_per_page: 50,
-          salary_min: undefined,
-          salary_max: undefined,
-        },
-      }
+    const pages = [1, 2, 3]; // you can increase later
+
+    const adzunaResponses = await Promise.all(
+      pages.map(page =>
+        axios.get(`https://api.adzuna.com/v1/api/jobs/gb/search/${page}`, {
+          params: {
+            app_id: process.env.ADZUNA_APP_ID,
+            app_key: process.env.ADZUNA_APP_KEY,
+            what: what || "",
+            results_per_page: 50,
+          },
+        })
+      )
+    );
+
+    const adzunaJobs = adzunaResponses.flatMap(res =>
+      res.data.results.map(job => ({
+        ...job,
+        source: "adzuna",
+        created: job.created,
+      }))
     );
 
     // =========================
@@ -114,33 +122,14 @@ app.get("/jobs", async (req, res) => {
     // 🔗 3. MERGE JOBS
     // =========================
     let jobs = [
-      ...adzunaRes.data.results.map((job) => ({
-        ...job,
-        source: "adzuna",
-        created: job.created,
-      })),
+      ...adzunaJobs,
       ...remotiveMapped,
     ];
 
-    // =========================
-    // 💰 4. SALARY FILTER
-    // =========================
-    if (minSalary !== null) {
-      jobs = jobs.filter(job => {
-        if (!job.salary_min) return true; // keep remotive / unknown salaries
-        return job.salary_min >= minSalary;
-      });
-    }
 
-    if (maxSalary !== null) {
-      jobs = jobs.filter(job => {
-        if (!job.salary_max) return true;
-        return job.salary_max <= maxSalary;
-      });
-    }
 
     // =========================
-    // 📍 5. DISTANCE FILTER (Adzuna only)
+    // 📍 4. GET DISTANCE
     // =========================
     if (userLat && userLon && distanceKm) {
       jobs = jobs
@@ -161,15 +150,6 @@ app.get("/jobs", async (req, res) => {
         })
         
     }
-
-    // =========================
-    // 📊 6. SORT (safe)
-    // =========================
-    jobs.sort((a, b) => {
-      const distA = a.distance ?? 999999;
-      const distB = b.distance ?? 999999;
-      return distA - distB;
-    });
 
     // =========================
     // 🧪 DEBUG OUTPUT
