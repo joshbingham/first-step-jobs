@@ -1,4 +1,5 @@
 import { useState } from "react";
+import JobCard from "./JobCard";
 
 export default function JobSearch() {
   const [localJobs, setLocalJobs] = useState([]);
@@ -362,69 +363,19 @@ export default function JobSearch() {
             )}
 
             <ul>
-              {sortedLocalJobs.map((job, index) => {
+              {sortedLocalJobs.map((job) => {
                 const match = getMatchDetails(job);
                 
                 return (
-                <div className="job-card" key={job.id || index}>
-                  <a
-                    className="job-title"
-                    href={job.redirect_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <h3>{job.title}</h3>
-                  </a>
-
-                  <p className="job-meta">
-                    {job.company?.display_name} • {job.location?.display_name}
-                  </p>
-
-                  <p className="match-score">
-                    ⭐ Match: {match.score}%
-                  </p>
-
-                  <ul className="match-reasons">
-                    {match.reasons.map((reason, i) => {
-                      const isWarning =
-                        reason.includes("Far") || reason.includes("Outside");
-
-                      return (
-                        <li key={i} className={isWarning ? "warn" : "ok"}>
-                          {isWarning ? "⚠" : "✔"} {reason}
-                        </li>
-                      );
-                    })}
-                  </ul>
-
-
-                  <div className="job-details">
-                    <p>
-                      💰 £{job.salary_min ?? "N/A"} - £{job.salary_max ?? "N/A"}
-                    </p>
-
-                    {job.distance && (
-                      <p>
-                        📍 {(job.distance * 0.621371).toFixed(1)} miles away
-                      </p>
-                    )}
-
-                    {job.created && (
-                      <p>
-                        🕒 Posted: {new Date(job.created).toLocaleDateString()}
-                      </p>
-                    )}
-                  </div>
-
-                  <button
-                    className="save-btn"
-                    onClick={() => toggleSaveJob(job)}
-                  >
-                    {isSaved(job) ? "★ Saved" : "☆ Save"}
-                  </button>
-
-                </div>
-                );
+                  <JobCard
+                    key={job.id}
+                    job={job}
+                    match={match}
+                    onSave={toggleSaveJob}
+                    isSaved={isSaved(job)}
+                    showDistance={true}
+                  />
+               );
               })}
             </ul>
           </>
@@ -440,48 +391,21 @@ export default function JobSearch() {
             )}
 
             <ul>
-              {sortedRemoteJobs.map((job, index) => {
+              {sortedRemoteJobs.map((job) => {
 
                 const match = getMatchDetails(job);
                 
                 return (
-                <li key={job.id || index}>
-                  <a
-                    href={job.redirect_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    {job.title} - {job.company?.display_name}
-                  </a>
-
-                  <p>⭐ Match: {match.score}%</p>
-
-                  <ul style={{ paddingLeft: "16px", marginTop: "4px" }}>
-                    {match.reasons.map((reason, i) => (
-                      <li key={i} style={{ fontSize: "0.9em", color: "gray" }}>
-                        ✔ {reason}
-                      </li>
-                    ))}
-                  </ul>
-
-                  <p>{job.location?.display_name || "Remote"}</p>
-                  
-                  <p>
-                    £{job.salary_min ?? "N/A"} - £{job.salary_max ?? "N/A"}
-                  </p>
-                  {job.created && (
-                    <p>
-                      Posted: {new Date(job.created).toLocaleDateString()}
-                    </p>
-                  )}
-
-                  <button onClick={() => toggleSaveJob(job)}>
-                    {isSaved(job) ? "★ Saved" : "☆ Save"}
-                  </button>
-
-              </li>
-              );
-            })}
+                  <JobCard
+                    key={job.id}
+                    job={job}
+                    match={match}
+                    onSave={toggleSaveJob}
+                    isSaved={isSaved(job)}
+                    showDistance={false}
+                  />
+                );
+              })}
             </ul>
           </>
         )}
@@ -505,39 +429,20 @@ export default function JobSearch() {
               </div>
             )}
             <ul>
-              {sortedSavedJobs.map((job, index) => (
-          
-                <li key={job.id || index}>
-                  <a
-                    href={job.redirect_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    {job.title} - {job.company?.display_name} (
-                    {job.location?.display_name})
-                  </a>
+              {sortedSavedJobs.map((job) => {
+                const match = getMatchDetails(job);
 
-                  <p>
-                    £{job.salary_min ?? "N/A"} - £{job.salary_max ?? "N/A"}
-                  </p>
-
-                  {job.distance && (
-                    <p>
-                      {(job.distance * 0.621371).toFixed(1)} miles away
-                    </p>
-                  )}
-
-                  {job.created && (
-                    <p>
-                      Posted: {new Date(job.created).toLocaleDateString()}
-                    </p>
-                  )}
-
-                  <button onClick={() => toggleSaveJob(job)}>
-                    Remove
-                  </button>
-                </li>
-              ))}
+                return (
+                  <JobCard
+                    key={job.id}
+                    job={job}
+                    match={match}
+                    onSave={toggleSaveJob}
+                    isSaved={isSaved(job)}
+                    showDistance={false}
+                  />
+                );
+              })}
             </ul>
           </>
         )}
