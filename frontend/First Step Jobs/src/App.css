@@ -1,3 +1,20 @@
+:root {
+  --bg: #0f172a;              /* deep navy */
+  --card-bg: #1e293b;         /* dark blue */
+  --primary: #6366f1;         /* indigo */
+  --secondary: #8b5cf6;       /* purple */
+  --accent: #38bdf8;          /* light blue */
+  --text: #e2e8f0;            /* soft white */
+  --text-muted: #94a3b8;
+  --border: #334155;
+}
+
+body {
+  background: linear-gradient(135deg, #0f172a, #1e1b4b);
+  color: var(--text);
+  font-family: system-ui, sans-serif;
+}
+
 .counter {
   font-size: 16px;
   padding: 5px 10px;
