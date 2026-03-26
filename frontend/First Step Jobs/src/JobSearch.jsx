@@ -12,6 +12,7 @@ export default function JobSearch() {
     return stored ? JSON.parse(stored) : [];
   });
   const [savedSortBy, setSavedSortBy] = useState("date"); 
+  const [usedRadius, setUsedRadius] = useState(null);
   
 
 
@@ -61,6 +62,7 @@ export default function JobSearch() {
     setLoading(true);
     setLoadingView(mode); // ✅ NEW: track which button is loading
     setError("");
+    setUsedRadius(data.usedRadius);
 
     try {
       // Block invalid local search
@@ -347,6 +349,12 @@ export default function JobSearch() {
         {view === "local" && (
           <>
             <h2>Jobs Near You</h2>
+
+            {usedRadius > radius && (
+              <p style={{ color: "gray" }}>
+                Showing jobs within {usedRadius} miles (expanded from {radius})
+              </p>
+            )}
 
             {localJobs.length === 0 && !loading && (
               <p>No local jobs found.</p>

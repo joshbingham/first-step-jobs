@@ -42,6 +42,8 @@ app.get("/jobs", async (req, res) => {
     let userLat = null;
     let userLon = null;
 
+    const MIN_RESULTS = 10;
+
     // 📍 Postcode → lat/lon
     if (location) {
       try {
@@ -62,28 +64,43 @@ app.get("/jobs", async (req, res) => {
     // =========================
     // 🧠 1. FETCH ADZUNA
     // =========================
-    const pages = [1, 2, 3]; // you can increase later
+    const radiusSteps = [distance || 10, 20, 50];
+    let adzunaJobs = [];
 
-    const adzunaResponses = await Promise.all(
-      pages.map(page =>
-        axios.get(`https://api.adzuna.com/v1/api/jobs/gb/search/${page}`, {
-          params: {
-            app_id: process.env.ADZUNA_APP_ID,
-            app_key: process.env.ADZUNA_APP_KEY,
-            what: what || "",
-            results_per_page: 50,
-          },
-        })
-      )
-    );
+    for (const radiusMiles of radiusSteps) {
+      console.log(`🔍 Searching within ${radiusMiles} miles`);
 
-    const adzunaJobs = adzunaResponses.flatMap(res =>
-      res.data.results.map(job => ({
-        ...job,
-        source: "adzuna",
-        created: job.created,
-      }))
-    );
+      const responses = await Promise.all(
+        [1, 2, 3].map(page =>
+          axios.get(`https://api.adzuna.com/v1/api/jobs/gb/search/${page}`, {
+            params: {
+              app_id: process.env.ADZUNA_APP_ID,
+              app_key: process.env.ADZUNA_APP_KEY,
+              what: what || "",
+              where: location || "",
+              distance: radiusMiles, // 👈 KEY LINE
+              results_per_page: 50,
+            },
+          })
+        )
+      );
+
+      const jobsBatch = responses.flatMap(res =>
+        res.data.results.map(job => ({
+          ...job,
+          source: "adzuna",
+          created: job.created,
+        }))
+      );
+
+      adzunaJobs = jobsBatch;
+
+      // ✅ STOP if enough jobs found
+      if (adzunaJobs.length >= MIN_RESULTS) {
+        console.log(`✅ Found ${adzunaJobs.length} jobs at ${radiusMiles} miles`);
+        break;
+      }
+    }
 
     // =========================
     // 🧠 2. FETCH REMOTIVE
@@ -176,7 +193,8 @@ app.get("/jobs", async (req, res) => {
 
     res.json({
       localJobs,
-      remoteJobs
+      remoteJobs,
+      usedRadius: radiusMiles
     });
 
   } catch (error) {
