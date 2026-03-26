@@ -164,23 +164,25 @@ export default function JobSearch() {
       }
     }
 
+    if (job.created) {
+      const daysOld = (Date.now() - new Date(job.created)) / (1000 * 60 * 60 * 24);
+
+      if (daysOld <= 3) {
+        score += 10;
+        reasons.push("Recently posted");
+      } else if (daysOld <= 7) {
+        score += 5;
+        reasons.push("Posted this week");
+      }
+    }
+
     return {
       score: Math.max(0, Math.min(100, score)),
       reasons,
     };
   };
 
-  if (job.created) {
-    const daysOld = (Date.now() - new Date(job.created)) / (1000 * 60 * 60 * 24);
-
-    if (daysOld <= 3) {
-      score += 10;
-      reasons.push("Recently posted");
-    } else if (daysOld <= 7) {
-      score += 5;
-      reasons.push("Posted this week");
-    }
-  }
+  
 
   const sortedLocalJobs = [...localJobs].sort((a, b) => {
 
