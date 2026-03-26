@@ -112,7 +112,7 @@ export default function JobSearch() {
   };
 
   const getMatchDetails = (job) => {
-    let score = 50;
+    let score = 30;
     const reasons = [];
 
     // 1. Keyword match
@@ -169,6 +169,18 @@ export default function JobSearch() {
       reasons,
     };
   };
+
+  if (job.created) {
+    const daysOld = (Date.now() - new Date(job.created)) / (1000 * 60 * 60 * 24);
+
+    if (daysOld <= 3) {
+      score += 10;
+      reasons.push("Recently posted");
+    } else if (daysOld <= 7) {
+      score += 5;
+      reasons.push("Posted this week");
+    }
+  }
 
   const sortedLocalJobs = [...localJobs].sort((a, b) => {
 
