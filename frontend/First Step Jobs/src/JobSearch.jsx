@@ -146,13 +146,21 @@ export default function JobSearch() {
     }
 
     // 3. Distance
-    if (job.distance) {
-      if (job.distance <= radius) {
+    if (job.distance && radius) {
+      const ratio = job.distance / radius;
+
+      if (ratio <= 0.5) {
+        score += 15;
+        reasons.push("Very close to you");
+      } else if (ratio <= 1) {
         score += 10;
-        reasons.push("Close to your location");
+        reasons.push("Within your preferred distance");
+      } else if (ratio <= 1.5) {
+        score += 0;
+        reasons.push("Slightly further than preferred");
       } else {
         score -= 10;
-        reasons.push("Further than preferred distance");
+        reasons.push("Far from your location");
       }
     }
 
