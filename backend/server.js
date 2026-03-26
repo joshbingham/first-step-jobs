@@ -159,10 +159,7 @@ app.get("/jobs", async (req, res) => {
             distance: jobDistance,
           };
         })
-        .filter((job) => {
-          if (!job.latitude || !job.longitude) return true; // keep Remotive jobs
-          return job.distance <= distanceKm;
-        });
+        
     }
 
     // =========================
