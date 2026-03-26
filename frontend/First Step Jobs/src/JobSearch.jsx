@@ -116,9 +116,17 @@ export default function JobSearch() {
     const reasons = [];
 
     // 1. Keyword match
-    if (keyword && job.title?.toLowerCase().includes(keyword.toLowerCase())) {
-      score += 20;
-      reasons.push("Matches your keyword");
+    if (keyword && job.title) {
+      const title = job.title.toLowerCase();
+      const search = keyword.toLowerCase();
+
+      if (title.includes(search)) {
+        score += 25;
+        reasons.push("Strong keyword match");
+      } else if (search.split(" ").some(word => title.includes(word))) {
+        score += 15;
+        reasons.push("Partial keyword match");
+      }
     }
 
     // 2. Salary match
