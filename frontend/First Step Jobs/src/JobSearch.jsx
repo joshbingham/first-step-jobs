@@ -130,14 +130,19 @@ export default function JobSearch() {
     }
 
     // 2. Salary match
-    if (salaryMin && job.salary_min >= salaryMin) {
-      score += 10;
-      reasons.push("Salary meets your minimum");
-    }
+    if (salaryMin && job.salary_min) {
+      const diff = job.salary_min - salaryMin;
 
-    if (salaryMax && job.salary_max <= salaryMax) {
-      score += 10;
-      reasons.push("Within your salary range");
+      if (diff >= 0) {
+        score += 15;
+        reasons.push("Salary meets your expectation");
+      } else if (diff > -5000) {
+        score += 5;
+        reasons.push("Slightly below your salary expectation");
+      } else {
+        score -= 10;
+        reasons.push("Below your salary expectation");
+      }
     }
 
     // 3. Distance
