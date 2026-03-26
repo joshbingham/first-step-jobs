@@ -15,6 +15,76 @@ body {
   font-family: system-ui, sans-serif;
 }
 
+.job-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 16px 18px;
+  margin-bottom: 16px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+  transition: 0.2s ease;
+}
+
+.job-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--primary);
+}
+
+.job-title h3 {
+  margin: 0;
+  font-size: 18px;
+  color: var(--text);
+}
+
+.job-meta {
+  margin: 4px 0 10px;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.match-score {
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.match-reasons {
+  padding-left: 16px;
+  margin-top: 8px;
+}
+
+.match-reasons li {
+  font-size: 0.9em;
+  margin-bottom: 4px;
+}
+
+.match-reasons .warn {
+  color: tomato;
+}
+
+.match-reasons .ok {
+  color: var(--text-muted);
+}
+
+.job-details p {
+  margin: 4px 0;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.save-btn {
+  margin-top: 10px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.save-btn:hover {
+  background: var(--secondary);
+}
+
 .counter {
   font-size: 16px;
   padding: 5px 10px;

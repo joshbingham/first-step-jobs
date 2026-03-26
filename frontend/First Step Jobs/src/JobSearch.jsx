@@ -366,57 +366,64 @@ export default function JobSearch() {
                 const match = getMatchDetails(job);
                 
                 return (
-                <li key={job.id || index}>
+                <div className="job-card" key={job.id || index}>
                   <a
+                    className="job-title"
                     href={job.redirect_url}
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    {job.title} - {job.company?.display_name} (
-                    {job.location?.display_name})
+                    <h3>{job.title}</h3>
                   </a>
 
-                  <p>⭐ Match: {match.score}%</p>
+                  <p className="job-meta">
+                    {job.company?.display_name} • {job.location?.display_name}
+                  </p>
 
-                  <ul style={{ paddingLeft: "16px", marginTop: "4px" }}>
-                    {match.reasons.map((reason, i) => (
-                      <li
-                        key={i}
-                        style={{
-                          fontSize: "0.9em",
-                          color: reason.includes("Far") || reason.includes("Outside")
-                            ? "tomato"
-                            : "gray"
-                        }}
-                      >
-                        {reason.includes("Far") || reason.includes("Outside") ? "⚠" : "✔"} {reason}
-                      </li>
-                    ))}
+                  <p className="match-score">
+                    ⭐ Match: {match.score}%
+                  </p>
+
+                  <ul className="match-reasons">
+                    {match.reasons.map((reason, i) => {
+                      const isWarning =
+                        reason.includes("Far") || reason.includes("Outside");
+
+                      return (
+                        <li key={i} className={isWarning ? "warn" : "ok"}>
+                          {isWarning ? "⚠" : "✔"} {reason}
+                        </li>
+                      );
+                    })}
                   </ul>
 
 
-                  <p>
-                    £{job.salary_min ?? "N/A"} - £{job.salary_max ?? "N/A"}
-                  </p>
-
-
-                  {job.distance && (
+                  <div className="job-details">
                     <p>
-                      {(job.distance * 0.621371).toFixed(1)} miles away
+                      💰 £{job.salary_min ?? "N/A"} - £{job.salary_max ?? "N/A"}
                     </p>
-                  )}
 
-                  {job.created && (
-                    <p>
-                      Posted: {new Date(job.created).toLocaleDateString()}
-                    </p>
-                  )}
+                    {job.distance && (
+                      <p>
+                        📍 {(job.distance * 0.621371).toFixed(1)} miles away
+                      </p>
+                    )}
 
-                  <button onClick={() => toggleSaveJob(job)}>
+                    {job.created && (
+                      <p>
+                        🕒 Posted: {new Date(job.created).toLocaleDateString()}
+                      </p>
+                    )}
+                  </div>
+
+                  <button
+                    className="save-btn"
+                    onClick={() => toggleSaveJob(job)}
+                  >
                     {isSaved(job) ? "★ Saved" : "☆ Save"}
                   </button>
 
-                </li>
+                </div>
                 );
               })}
             </ul>
