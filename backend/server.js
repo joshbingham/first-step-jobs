@@ -66,8 +66,10 @@ app.get("/jobs", async (req, res) => {
     // =========================
     const radiusSteps = [distance || 10, 20, 50];
     let adzunaJobs = [];
+    let usedRadius = Number(distance) || 10;
 
     for (const radiusMiles of radiusSteps) {
+      usedRadius = radiusMiles;
       console.log(`🔍 Searching within ${radiusMiles} miles`);
 
       const responses = await Promise.all(
@@ -194,7 +196,7 @@ app.get("/jobs", async (req, res) => {
     res.json({
       localJobs,
       remoteJobs,
-      usedRadius: radiusMiles
+      usedRadius
     });
 
   } catch (error) {
