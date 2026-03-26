@@ -62,7 +62,7 @@ export default function JobSearch() {
     setLoading(true);
     setLoadingView(mode); // ✅ NEW: track which button is loading
     setError("");
-    setUsedRadius(data.usedRadius);
+    
 
     try {
       // Block invalid local search
@@ -100,6 +100,7 @@ export default function JobSearch() {
 
       setLocalJobs(data.localJobs || []);
       setRemoteJobs(data.remoteJobs || []);
+      setUsedRadius(data.usedRadius || radius);
 
       setView(mode);
 
