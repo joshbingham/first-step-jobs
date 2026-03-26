@@ -71,8 +71,8 @@ app.get("/jobs", async (req, res) => {
           what: what || "",
           where: location || "",
           results_per_page: 50,
-          salary_min: minSalary || undefined,
-          salary_max: maxSalary || undefined,
+          salary_min: undefined,
+          salary_max: undefined,
         },
       }
     );
