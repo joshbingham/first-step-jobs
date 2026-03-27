@@ -437,7 +437,7 @@ export default function JobSearch() {
                     key={job.id}
                     job={job}
                     match={match}
-                    onSave={toggleSaveJob}
+                    onRemove={toggleSaveJob}
                     isSaved={isSaved(job)}
                     showDistance={false}
                   />
