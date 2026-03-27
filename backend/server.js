@@ -138,12 +138,52 @@ app.get("/jobs", async (req, res) => {
     console.log("Remotive jobs:", remotiveMapped.length);
 
     // =========================
-    // 🔗 3. MERGE JOBS
+    // 🧠 3. FETCH REED
+    // =========================
+
+    const reedRes = await axios.get("https://www.reed.co.uk/api/1.0/search", {
+      params: {
+        keywords: what || "",
+        locationName: location || "",
+        distanceFromLocation: distance || 10,
+        minimumSalary: minSalary || undefined,
+        maximumSalary: maxSalary || undefined,
+        resultsToTake: 50,
+      },
+      auth: {
+        username: process.env.REED_API_KEY,
+        password: "",
+      },
+    });
+
+    const reedJobs = reedRes.data.results.map(job => ({
+      id: `reed-${job.jobId}`,
+      title: job.jobTitle,
+      company: { display_name: job.employerName },
+      location: { display_name: job.locationName },
+      salary_min: job.minimumSalary,
+      salary_max: job.maximumSalary,
+      redirect_url: job.jobUrl,
+      latitude: job.latitude,
+      longitude: job.longitude,
+      source: "reed",
+      created: job.date,
+    }));
+
+    // =========================
+    // 🔗 4. MERGE JOBS
     // =========================
     let jobs = [
       ...adzunaJobs,
       ...remotiveMapped,
+      ...reedJobs,
     ];
+
+    const uniqueJobs = Array.from(
+      new Map(jobs.map(job => [job.redirect_url, job])).values()
+    );
+
+    jobs = uniqueJobs;
 
 
 
@@ -182,6 +222,8 @@ app.get("/jobs", async (req, res) => {
         distance: j.distance
       }))
     );
+
+    console.log(jobs.map(j => j.source));
 
     console.log(jobs[0].created);
 
