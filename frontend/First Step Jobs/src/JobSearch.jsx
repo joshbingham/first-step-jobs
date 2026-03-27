@@ -306,7 +306,7 @@ export default function JobSearch() {
         </select>
       </div>
 
-      <div style={{ margin: "16px 0", padding: "12px", background: "#f5f5f5", borderRadius: "8px" }}>
+      <div className="results-banner">
         <p style={{ margin: 0 }}>
           {loading ? (
             <>
