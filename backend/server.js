@@ -132,55 +132,62 @@ app.get("/jobs", async (req, res) => {
       latitude: null,
       longitude: null,
       source: "remotive",
+      isRemote: true,
       created: job.publication_date,
     }));
 
     console.log("Remotive jobs:", remotiveMapped.length);
 
     // =========================
-    // 🧠 3. FETCH REED
+    // 🧠 3. FETCH ARBEITNOW
     // =========================
 
-    const reedRes = await axios.get("https://www.reed.co.uk/api/1.0/search", {
-      params: {
-        keywords: what || "",
-        locationName: location || "",
-        distanceFromLocation: distance || 10,
-        minimumSalary: minSalary || undefined,
-        maximumSalary: maxSalary || undefined,
-        resultsToTake: 50,
-      },
-      auth: {
-        username: process.env.REED_API_KEY,
-        password: "",
-      },
-    });
+    let arbeitnowJobs = [];
 
-    const reedJobs = reedRes.data.results.map(job => ({
-      id: `reed-${job.jobId}`,
-      title: job.jobTitle,
-      company: { display_name: job.employerName },
-      location: { display_name: job.locationName },
-      salary_min: job.minimumSalary,
-      salary_max: job.maximumSalary,
-      redirect_url: job.jobUrl,
-      latitude: job.latitude,
-      longitude: job.longitude,
-      source: "reed",
-      created: job.date,
-    }));
+    try {
+      const arbeitRes = await axios.get(
+        "https://www.arbeitnow.com/api/job-board-api"
+      );
 
+      arbeitnowJobs = arbeitRes.data.data.map((job) => ({
+        title: job.title,
+        company: {
+          display_name: job.company_name || "Unknown",
+        },
+        location: {
+          display_name: job.location || "Remote",
+        },
+        salary_min: null,
+        salary_max: null,
+        redirect_url: job.url,
+        latitude: null,
+        longitude: null,
+        source: "arbeitnow",
+        isRemote: job.remote ?? true,
+        created: job.created_at,
+      }));
+
+      console.log("Arbeitnow jobs:", arbeitnowJobs.length);
+
+    } catch (err) {
+      console.log("⚠️ Arbeitnow failed:", err.message);
+    }
     // =========================
     // 🔗 4. MERGE JOBS
     // =========================
     let jobs = [
       ...adzunaJobs,
       ...remotiveMapped,
-      ...reedJobs,
+      ...arbeitnowJobs,
     ];
 
     const uniqueJobs = Array.from(
-      new Map(jobs.map(job => [job.redirect_url, job])).values()
+      new Map(
+        jobs.map(job => [
+          `${job.title}-${job.company?.display_name}-${job.location?.display_name}`,
+          job
+        ])
+      ).values()
     );
 
     jobs = uniqueJobs;

@@ -14,6 +14,7 @@ export default function JobSearch() {
   });
   const [savedSortBy, setSavedSortBy] = useState("date"); 
   const [usedRadius, setUsedRadius] = useState(null);
+  const [hasLoadedRemote, setHasLoadedRemote] = useState(false);
   
 
 
@@ -101,6 +102,7 @@ export default function JobSearch() {
 
       setLocalJobs(data.localJobs || []);
       setRemoteJobs(data.remoteJobs || []);
+      setHasLoadedRemote(true);
       setUsedRadius(data.usedRadius || radius);
 
       setView(mode);
@@ -384,9 +386,9 @@ export default function JobSearch() {
         {/* REMOTE */}
         {view === "remote" && (
           <>
-            <h2>Remote Jobs</h2>
+            {remoteJobs.length > 0 && <h2>Remote Jobs</h2>}
 
-            {remoteJobs.length === 0 && !loading && (
+            {hasLoadedRemote && remoteJobs.length === 0 && !loading && (
               <p>No remote jobs found.</p>
             )}
 
