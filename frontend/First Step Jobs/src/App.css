@@ -15,6 +15,12 @@ body {
   font-family: system-ui, sans-serif;
 }
 
+ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
 .job-card {
   background: var(--card-bg);
   border: 1px solid var(--border);
