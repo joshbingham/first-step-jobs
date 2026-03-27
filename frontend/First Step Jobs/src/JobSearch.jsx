@@ -368,7 +368,7 @@ export default function JobSearch() {
                 
                 return (
                   <JobCard
-                    key={job.id}
+                    key={job.id || `remotive-${job.redirect_url}`}
                     job={job}
                     match={match}
                     onSave={toggleSaveJob}
@@ -397,7 +397,7 @@ export default function JobSearch() {
                 
                 return (
                   <JobCard
-                    key={job.id}
+                    key={job.id || `remotive-${job.redirect_url}`}
                     job={job}
                     match={match}
                     onSave={toggleSaveJob}
@@ -434,7 +434,7 @@ export default function JobSearch() {
 
                 return (
                   <JobCard
-                    key={job.id}
+                    key={job.id || `remotive-${job.redirect_url}`}
                     job={job}
                     match={match}
                     onRemove={toggleSaveJob}
