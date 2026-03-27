@@ -14,6 +14,7 @@ export default function JobSearch() {
   const [savedSortBy, setSavedSortBy] = useState("date"); 
   const [usedRadius, setUsedRadius] = useState(null);
   const [hasLoadedRemote, setHasLoadedRemote] = useState(false);
+  const [searchTrigger, setSearchTrigger] = useState(0);
   
 
 
@@ -59,25 +60,22 @@ export default function JobSearch() {
   // ----------------------------
   // MAIN API FUNCTION
   // ----------------------------
-  const loadJobs = async (mode) => {
+  const loadJobs = async () => {
     setLoading(true);
-    setLoadingView(mode); // ✅ NEW: track which button is loading
     setError("");
-    
 
     try {
-      // Block invalid local search
-      if (mode === "local" && hasPostcode && !isValidPostcode) {
+      const trimmedPostcode = postcode.trim();
+
+      const isValidPostcode =
+        /^[A-Z]{1,2}\d[A-Z\d]? ?\d[A-Z]{2}$/i.test(trimmedPostcode);
+
+      const isLocal = trimmedPostcode.length > 0 && isValidPostcode;
+
+      // validate postcode only when user is trying local search
+      if (trimmedPostcode && !isValidPostcode) {
         setError("Please enter a valid postcode (e.g. SW11 1AA)");
         setLoading(false);
-        setLoadingView(null);
-        return;
-      }
-
-      if (mode === "local" && !hasPostcode) {
-        setError("Enter a postcode to search nearby jobs");
-        setLoading(false);
-        setLoadingView(null);
         return;
       }
 
@@ -87,9 +85,9 @@ export default function JobSearch() {
       if (salaryMin) params.append("salary_min", salaryMin);
       if (salaryMax) params.append("salary_max", salaryMax);
 
-      // Only local search uses location
-      if (mode === "local") {
-        params.append("location", postcode);
+      // ONLY attach location if local search
+      if (isLocal) {
+        params.append("location", trimmedPostcode);
         params.append("distance", radius);
       }
 
@@ -104,7 +102,7 @@ export default function JobSearch() {
       setHasLoadedRemote(true);
       setUsedRadius(data.usedRadius || radius);
 
-      setView(mode);
+      setView(isLocal ? "local" : "remote");
 
     } catch (err) {
       console.error("Failed to load jobs:", err);
@@ -113,7 +111,6 @@ export default function JobSearch() {
     }
 
     setLoading(false);
-    setLoadingView(null); // ✅ reset button loading state
   };
 
   const getMatchDetails = (job) => {
@@ -233,17 +230,29 @@ export default function JobSearch() {
   });
 
   useEffect(() => {
-    // don’t run on first render if fields are empty
     if (!keyword && !postcode) return;
 
     const delay = setTimeout(() => {
-      // decide which mode to search
-      const mode = postcode.trim() ? "local" : "remote";
-      loadJobs(mode);
-    }, 600); // 600ms debounce
+      loadJobs();
+    }, 500); // slightly slower = fewer spam calls
 
     return () => clearTimeout(delay);
-  }, [keyword, postcode, radius, salaryMin, salaryMax]);
+  }, [searchTrigger]);
+
+  const buildSearchSummary = () => {
+    const parts = [];
+
+    if (keyword) parts.push(`“${keyword}” jobs`);
+    if (postcode) parts.push(`near ${postcode}`);
+    if (radius) parts.push(`within ${radius} miles`);
+    if (salaryMin || salaryMax) {
+      parts.push(
+        `salary ${salaryMin || "0"} - ${salaryMax || "∞"}`
+      );
+    }
+
+    return parts.join(" • ");
+  };
 
   return (
     <div>
@@ -255,7 +264,10 @@ export default function JobSearch() {
           type="text"
           placeholder="Keyword (e.g. developer)"
           value={keyword}
-          onChange={(e) => setKeyword(e.target.value)}
+          onChange={(e) => {
+            setKeyword(e.target.value);
+            setSearchTrigger(prev => prev + 1);
+          }}
           style={{ marginRight: "8px" }}
         />
 
@@ -273,13 +285,18 @@ export default function JobSearch() {
             if (valid || value.trim() === "") {
               setError("");
             }
+
+            setSearchTrigger(prev => prev + 1);
           }}
           style={{ marginRight: "8px" }}
         />
 
         <select
           value={radius}
-          onChange={(e) => setRadius(e.target.value)}
+          onChange={(e) => {
+            setRadius(Number(e.target.value));
+            setSearchTrigger(prev => prev + 1);
+          }}
           style={{ marginRight: "8px" }}
         >
           <option value={5}>5 miles</option>
@@ -289,13 +306,30 @@ export default function JobSearch() {
         </select>
       </div>
 
+      <div style={{ margin: "16px 0", padding: "12px", background: "#f5f5f5", borderRadius: "8px" }}>
+        <p style={{ margin: 0 }}>
+          {loading ? (
+            <>
+              🔍 Searching for {buildSearchSummary()}...
+            </>
+          ) : (
+            <>
+              🎯 Showing results for {buildSearchSummary() || "all jobs"}
+            </>
+          )}
+        </p>
+      </div>
+
       {/* SALARY */}
       <div style={{ marginBottom: "16px" }}>
         <input
           type="number"
           placeholder="Min Salary"
           value={salaryMin}
-          onChange={(e) => setSalaryMin(e.target.value)}
+          onChange={(e) => {
+            setSalaryMin(e.target.value);
+            setSearchTrigger(prev => prev + 1);
+          }}
           style={{ marginRight: "8px" }}
         />
 
@@ -303,7 +337,10 @@ export default function JobSearch() {
           type="number"
           placeholder="Max Salary"
           value={salaryMax}
-          onChange={(e) => setSalaryMax(e.target.value)}
+          onChange={(e) => {
+            setSalaryMax(e.target.value);
+            setSearchTrigger(prev => prev + 1);
+          }}
           style={{ marginRight: "8px" }}
         />
       </div>
