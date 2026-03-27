@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import JobCard from "./JobCard";
 
 export default function JobSearch() {
@@ -233,7 +233,18 @@ export default function JobSearch() {
     return new Date(b.created || 0) - new Date(a.created || 0);
   });
 
-  
+  useEffect(() => {
+    // don’t run on first render if fields are empty
+    if (!keyword && !postcode) return;
+
+    const delay = setTimeout(() => {
+      // decide which mode to search
+      const mode = postcode.trim() ? "local" : "remote";
+      loadJobs(mode);
+    }, 600); // 600ms debounce
+
+    return () => clearTimeout(delay);
+  }, [keyword, postcode, radius, salaryMin, salaryMax]);
 
   return (
     <div>
@@ -307,45 +318,7 @@ export default function JobSearch() {
         </p>
       )}
 
-      {/* ACTION BUTTONS */}
-      <div style={{ display: "flex", gap: "12px", marginBottom: "16px", justifyContent: "center" }}>
-        <button
-          onClick={() => loadJobs("local")}
-          disabled={loading || !postcode.trim()}
-        >
-          {loading && loadingView === "local"
-            ? "Loading..."
-            : "Near Me Jobs"}
-        </button>
-
-        <button
-          onClick={() => loadJobs("remote")}
-          disabled={loading}
-        >
-          {loading && loadingView === "remote"
-            ? "Loading..."
-            : "Remote Jobs"}
-        </button>
-      </div>
-
-      <button onClick={() => setView("saved")}>
-        Saved Jobs ({savedJobs.length})
-      </button>
-
-      {view !== "saved" && (
-        <div style={{ marginBottom: "16px", textAlign: "center" }}>
-          <label style={{ marginRight: "8px" }}>Sort by:</label>
-
-          <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
-            <option value="match">Best match</option>
-
-            {view === "local" && (
-              <option value="distance">Closest first</option>
-            )}
-            <option value="date">Newest first</option>
-          </select>
-        </div>
-      )}
+      
       
       {/* RESULTS */}
       <div>
