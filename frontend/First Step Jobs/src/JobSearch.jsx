@@ -5,7 +5,6 @@ export default function JobSearch() {
   const [localJobs, setLocalJobs] = useState([]);
   const [remoteJobs, setRemoteJobs] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [loadingView, setLoadingView] = useState(null);
   const [error, setError] = useState("");
   const [sortBy, setSortBy] = useState("match"); 
   const [savedJobs, setSavedJobs] = useState(() => {
