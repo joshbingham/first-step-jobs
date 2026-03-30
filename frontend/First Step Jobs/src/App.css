@@ -112,6 +112,18 @@ justify-content: center;
 flex-wrap: wrap;
 }
 
+.salary-bar select {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  color: var(--text);
+
+  padding: 10px 12px;
+  border-radius: 10px;
+
+  appearance: none; /* removes default arrow styling */
+  cursor: pointer;
+}
+
 /* =========================
 BANNER
 ========================= */

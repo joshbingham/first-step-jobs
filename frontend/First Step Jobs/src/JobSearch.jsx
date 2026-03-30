@@ -313,25 +313,35 @@ export default function JobSearch() {
       />
 
       <div className="salary-bar">
-        <input
-          type="number"
-          placeholder="Min Salary"
+        <select
           value={salaryMin}
           onChange={(e) => {
             setSalaryMin(e.target.value);
             setSearchTrigger(prev => prev + 1);
           }}
-        />
+        >
+          <option value="">Min Salary</option>
+          <option value="20000">£20,000</option>
+          <option value="30000">£30,000</option>
+          <option value="40000">£40,000</option>
+          <option value="50000">£50,000</option>
+          <option value="60000">£60,000+</option>
+        </select>
 
-        <input
-          type="number"
-          placeholder="Max Salary"
+        <select
           value={salaryMax}
           onChange={(e) => {
             setSalaryMax(e.target.value);
             setSearchTrigger(prev => prev + 1);
           }}
-        />
+        >
+          <option value="">Max Salary</option>
+          <option value="30000">£30,000</option>
+          <option value="40000">£40,000</option>
+          <option value="50000">£50,000</option>
+          <option value="70000">£70,000</option>
+          <option value="100000">£100,000</option>
+        </select>
       </div>
 
       {/* ERROR + HELP */}
