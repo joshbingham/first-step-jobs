@@ -6,7 +6,9 @@ import "./App.css";
 function App() {
   return (
     <div className="App">
-      <JobSearch />
+      <div className="container">
+        <JobSearch />
+      </div>
     </div>
   );
 }

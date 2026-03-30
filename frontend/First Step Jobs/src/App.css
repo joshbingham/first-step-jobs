@@ -1,97 +1,318 @@
 /* =========================
-   TITLE
+ROOT THEME
 ========================= */
-.page-title {
-  font-size: 28px;
-  font-weight: 800;
-  margin-bottom: 20px;
+:root {
+--bg: #050914;
+--panel: #0b1224;
+--card: #0f1a33;
+
+--primary: #4f46e5;
+--accent: #22d3ee;
+--danger: #fb7185;
+
+--text: #f9fafb;
+--muted: #9aa4b2;
+
+--border: rgba(148, 163, 184, 0.15);
+
+--shadow: 0 25px 60px rgba(0, 0, 0, 0.55);
+--glow: 0 0 0 1px rgba(34, 211, 238, 0.25),
+0 0 40px rgba(34, 211, 238, 0.10);
 }
 
 /* =========================
-   SEARCH BAR
+GLOBAL RESET
+========================= */
+
+* {
+  box-sizing: border-box;
+  }
+
+body {
+margin: 0;
+background: radial-gradient(circle at top, #0b1430, var(--bg));
+color: var(--text);
+font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+}
+
+/* FORCE DARK MODE SAFETY */
+div, section, main, header, footer {
+background: transparent;
+}
+
+/* =========================
+APP LAYOUT (CENTERED)
+========================= */
+.App {
+min-height: 100vh;
+display: flex;
+justify-content: center;
+}
+
+.container {
+width: 100%;
+max-width: 900px;
+padding: 32px 20px;
+}
+
+/* =========================
+TITLE
+========================= */
+.page-title {
+font-size: 28px;
+font-weight: 800;
+margin-bottom: 24px;
+text-align: center;
+}
+
+/* =========================
+SEARCH BAR
 ========================= */
 .search-bar {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 16px;
+display: flex;
+gap: 10px;
+margin-bottom: 16px;
+justify-content: center;
+flex-wrap: wrap;
 }
 
 .search-bar input,
 .search-bar select,
 .salary-bar input {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  color: var(--text);
+background: var(--panel);
+border: 1px solid var(--border);
+color: var(--text);
 
-  padding: 10px 12px;
-  border-radius: 10px;
+padding: 10px 12px;
+border-radius: 10px;
 
-  outline: none;
-  transition: 0.2s ease;
+outline: none;
+transition: 0.2s ease;
+}
+
+.search-bar input::placeholder,
+.salary-bar input::placeholder {
+color: var(--muted);
 }
 
 .search-bar input:focus,
 .salary-bar input:focus {
-  border-color: var(--accent);
-  box-shadow: var(--glow);
+border-color: var(--accent);
+box-shadow: var(--glow);
 }
 
 /* =========================
-   SALARY BAR
+SALARY BAR
 ========================= */
 .salary-bar {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 16px;
+display: flex;
+gap: 10px;
+margin-bottom: 16px;
+justify-content: center;
+flex-wrap: wrap;
 }
 
 /* =========================
-   BANNER (FIXED + BEAUTIFUL)
+BANNER
 ========================= */
 .banner {
-  margin: 18px 0;
-  padding: 14px 16px;
+margin: 20px 0;
+padding: 14px 16px;
 
-  border-radius: 14px;
+border-radius: 14px;
 
-  background: linear-gradient(135deg, #0f172a, #0b1224);
-  border: 1px solid var(--border);
+background: linear-gradient(135deg, #0f172a, #0b1224);
+border: 1px solid var(--border);
 
-  box-shadow: var(--shadow);
+box-shadow: var(--shadow);
 }
 
 .banner p {
-  margin: 0;
-  font-weight: 500;
-  color: var(--muted);
+margin: 0;
+font-weight: 500;
+color: var(--muted);
+text-align: center;
 }
 
 .banner.loading {
-  border-color: var(--accent);
-  box-shadow: var(--shadow), var(--glow);
+border-color: var(--accent);
+box-shadow: var(--shadow), var(--glow);
 }
 
 /* =========================
-   TEXT HELPERS
+TEXT HELPERS
 ========================= */
 .error-text {
-  color: var(--danger);
-  margin-bottom: 10px;
+color: var(--danger);
+text-align: center;
+margin-bottom: 10px;
 }
 
 .helper-text {
-  color: var(--muted);
-  margin-bottom: 16px;
+color: var(--muted);
+text-align: center;
+margin-bottom: 16px;
 }
 
 /* =========================
-   JOB HEADER LINK
+LIST RESET
+========================= */
+ul {
+list-style: none;
+padding: 0;
+margin: 0;
+}
+
+/* =========================
+JOB CARD
+========================= */
+.job-card {
+background: linear-gradient(180deg, var(--card), #0b132a);
+
+border: 1px solid var(--border);
+border-radius: 16px;
+
+padding: 18px;
+margin-bottom: 14px;
+
+box-shadow: var(--shadow);
+
+transition: 0.25s ease;
+}
+
+.job-card:hover {
+transform: translateY(-5px);
+border-color: var(--accent);
+box-shadow: var(--shadow), var(--glow);
+}
+
+/* =========================
+JOB HEADER
 ========================= */
 .job-header {
-  text-decoration: none;
-  color: var(--text);
+text-decoration: none;
+color: var(--text);
+}
+
+.job-header h3 {
+margin: 0;
+font-size: 18px;
+font-weight: 700;
 }
 
 .job-header:hover h3 {
-  color: var(--accent);
+color: var(--accent);
 }
+
+.job-meta {
+font-size: 14px;
+color: var(--muted);
+}
+
+/* =========================
+MATCH SCORE
+========================= */
+.match-score {
+display: inline-block;
+margin-top: 10px;
+
+padding: 6px 12px;
+border-radius: 999px;
+
+font-size: 13px;
+font-weight: 700;
+
+color: var(--accent);
+background: rgba(34, 211, 238, 0.08);
+
+border: 1px solid rgba(34, 211, 238, 0.25);
+}
+
+/* =========================
+MATCH REASONS
+========================= */
+.match-reasons {
+margin-top: 10px;
+padding-left: 18px;
+}
+
+.match-reasons li {
+font-size: 13px;
+color: var(--muted);
+margin-bottom: 4px;
+}
+
+.match-reasons .warn {
+color: var(--danger);
+}
+
+/* =========================
+DETAILS
+========================= */
+.job-details p {
+margin: 4px 0;
+font-size: 14px;
+color: var(--muted);
+}
+
+/* =========================
+BUTTONS
+========================= */
+.job-actions {
+margin-top: 12px;
+}
+
+.save-btn {
+background: linear-gradient(135deg, var(--primary), var(--accent));
+color: white;
+
+border: none;
+padding: 10px 14px;
+border-radius: 12px;
+
+font-weight: 600;
+cursor: pointer;
+
+transition: 0.2s ease;
+}
+
+.save-btn:hover {
+transform: translateY(-2px);
+filter: brightness(1.1);
+}
+
+.remove-btn {
+margin-left: 10px;
+
+background: transparent;
+border: 1px solid var(--danger);
+color: var(--danger);
+
+padding: 6px 10px;
+border-radius: 10px;
+
+cursor: pointer;
+}
+
+.remove-btn:hover {
+background: var(--danger);
+color: white;
+}
+
+/* =========================
+MOBILE
+========================= */
+@media (max-width: 768px) {
+.container {
+padding: 20px 14px;
+}
+
+.job-card {
+padding: 16px;
+}
+
+.job-header h3 {
+font-size: 16px;
+}
+}
+
