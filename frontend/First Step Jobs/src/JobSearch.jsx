@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import JobCard from "./JobCard";
+import Banner from "./Banner";
 
 export default function JobSearch() {
   const [localJobs, setLocalJobs] = useState([]);
@@ -256,10 +257,9 @@ export default function JobSearch() {
 
   return (
     <div>
-      <h1>First Step Jobs</h1>
+      <h1 className="page-title">First Step Jobs</h1>
 
-      {/* INPUTS */}
-      <div style={{ marginBottom: "16px" }}>
+      <div className="search-bar">
         <input
           type="text"
           placeholder="Keyword (e.g. developer)"
@@ -268,7 +268,6 @@ export default function JobSearch() {
             setKeyword(e.target.value);
             setSearchTrigger(prev => prev + 1);
           }}
-          style={{ marginRight: "8px" }}
         />
 
         <input
@@ -288,7 +287,6 @@ export default function JobSearch() {
 
             setSearchTrigger(prev => prev + 1);
           }}
-          style={{ marginRight: "8px" }}
         />
 
         <select
@@ -297,7 +295,6 @@ export default function JobSearch() {
             setRadius(Number(e.target.value));
             setSearchTrigger(prev => prev + 1);
           }}
-          style={{ marginRight: "8px" }}
         >
           <option value={5}>5 miles</option>
           <option value={10}>10 miles</option>
@@ -306,22 +303,16 @@ export default function JobSearch() {
         </select>
       </div>
 
-      <div className="results-banner">
-        <p style={{ margin: 0 }}>
-          {loading ? (
-            <>
-              🔍 Searching for {buildSearchSummary()}...
-            </>
-          ) : (
-            <>
-              🎯 Showing results for {buildSearchSummary() || "all jobs"}
-            </>
-          )}
-        </p>
-      </div>
+      <Banner
+        loading={loading}
+        text={
+          loading
+            ? `Searching for ${buildSearchSummary()}...`
+            : `Showing results for ${buildSearchSummary() || "all jobs"}`
+        }
+      />
 
-      {/* SALARY */}
-      <div style={{ marginBottom: "16px" }}>
+      <div className="salary-bar">
         <input
           type="number"
           placeholder="Min Salary"
@@ -330,7 +321,6 @@ export default function JobSearch() {
             setSalaryMin(e.target.value);
             setSearchTrigger(prev => prev + 1);
           }}
-          style={{ marginRight: "8px" }}
         />
 
         <input
@@ -341,15 +331,14 @@ export default function JobSearch() {
             setSalaryMax(e.target.value);
             setSearchTrigger(prev => prev + 1);
           }}
-          style={{ marginRight: "8px" }}
         />
       </div>
 
       {/* ERROR + HELP */}
-      {error && <p style={{ color: "red" }}>{error}</p>}
+      {error && <p className="error-text">{error}</p>}
 
       {!postcode.trim() && (
-        <p style={{ color: "gray" }}>
+        <p className="helper-text">
           Enter a postcode to enable “Near Me Jobs”
         </p>
       )}
