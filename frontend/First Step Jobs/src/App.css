@@ -1,299 +1,97 @@
-#root {
-  background: transparent !important;
-}
-
-:root {
-  --bg: #050914;
-  --panel: #0b1224;
-  --card: #0f1a33;
-
-  --primary: #4f46e5;
-  --accent: #22d3ee;
-  --danger: #fb7185;
-
-  --text: #f9fafb;
-  --muted: #9aa4b2;
-
-  --border: rgba(148, 163, 184, 0.15);
-
-  --shadow: 0 25px 60px rgba(0, 0, 0, 0.55);
-  --glow: 0 0 0 1px rgba(34, 211, 238, 0.25),
-          0 0 40px rgba(34, 211, 238, 0.10);
-}
-
 /* =========================
-   HARD RESET (FIXES WHITE BOX BUGS)
+   TITLE
 ========================= */
-
-* {
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-  background: radial-gradient(circle at top, #0b1430, var(--bg));
-  color: var(--text);
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-}
-
-/* FORCE ALL ELEMENTS TO BE DARK SAFE */
-div, section, main, header, footer, p, span {
-  background: transparent;
-  color: var(--text);
-}
-
-/* =========================
-   APP WRAPPER
-========================= */
-
-.App {
-  min-height: 100vh;
-  padding: 24px;
-}
-
-/* =========================
-   SHOWING RESULTS FIX (YOUR WHITE BOX ISSUE)
-========================= */
-
-.results-banner {
-  margin: 16px 0;
-  padding: 12px;
-
-  background: rgba(15, 23, 42, 0.85);
-  border: 1px solid rgba(148, 163, 184, 0.18);
-  border-radius: 12px;
-
-  color: #f9fafb;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
-}
-
-.results-banner p {
-  margin: 0;
-  color: #9aa4b2;
-}
-
-.counter {
-  display: inline-block;
-
-  background: var(--panel) !important;
-  color: var(--accent) !important;
-
-  border: 1px solid var(--border);
-
-  padding: 10px 14px;
-  border-radius: 12px;
-
-  font-weight: 600;
+.page-title {
+  font-size: 28px;
+  font-weight: 800;
   margin-bottom: 20px;
-
-  box-shadow: var(--shadow);
 }
 
 /* =========================
-   JOB CARD (CLEAN MODERN GLASS)
+   SEARCH BAR
 ========================= */
-
-.job-card {
-  background: linear-gradient(180deg, var(--card), #0b132a);
-
-  border: 1px solid var(--border);
-  border-radius: 16px;
-
-  padding: 18px;
-  margin-bottom: 14px;
-
-  box-shadow: var(--shadow);
-
-  transition: 0.25s ease;
+.search-bar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
 }
 
-.job-card:hover {
-  transform: translateY(-5px);
+.search-bar input,
+.search-bar select,
+.salary-bar input {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  color: var(--text);
+
+  padding: 10px 12px;
+  border-radius: 10px;
+
+  outline: none;
+  transition: 0.2s ease;
+}
+
+.search-bar input:focus,
+.salary-bar input:focus {
+  border-color: var(--accent);
+  box-shadow: var(--glow);
+}
+
+/* =========================
+   SALARY BAR
+========================= */
+.salary-bar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+/* =========================
+   BANNER (FIXED + BEAUTIFUL)
+========================= */
+.banner {
+  margin: 18px 0;
+  padding: 14px 16px;
+
+  border-radius: 14px;
+
+  background: linear-gradient(135deg, #0f172a, #0b1224);
+  border: 1px solid var(--border);
+
+  box-shadow: var(--shadow);
+}
+
+.banner p {
+  margin: 0;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.banner.loading {
   border-color: var(--accent);
   box-shadow: var(--shadow), var(--glow);
 }
 
 /* =========================
-   TITLE
+   TEXT HELPERS
 ========================= */
-
-.job-title h3 {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 700;
-}
-
-/* =========================
-   META
-========================= */
-
-.job-meta {
-  font-size: 14px;
-  color: var(--muted);
-}
-
-/* =========================
-   MATCH SCORE BADGE
-========================= */
-
-.match-score {
-  display: inline-block;
-  margin-top: 8px;
-
-  padding: 5px 10px;
-  border-radius: 999px;
-
-  font-size: 13px;
-  font-weight: 700;
-
-  color: var(--accent);
-  background: rgba(34, 211, 238, 0.08);
-
-  border: 1px solid rgba(34, 211, 238, 0.25);
-}
-
-/* =========================
-   REASONS
-========================= */
-
-.match-reasons {
-  margin-top: 10px;
-  padding-left: 18px;
-}
-
-.match-reasons li {
-  font-size: 13px;
-  color: var(--muted);
-  margin-bottom: 4px;
-}
-
-.match-reasons .warn {
+.error-text {
   color: var(--danger);
+  margin-bottom: 10px;
 }
 
-/* =========================
-   DETAILS
-========================= */
-
-.job-details p {
-  margin: 4px 0;
-  font-size: 14px;
+.helper-text {
   color: var(--muted);
+  margin-bottom: 16px;
 }
 
 /* =========================
-   BUTTONS
+   JOB HEADER LINK
 ========================= */
-
-.save-btn {
-  margin-top: 10px;
-
-  background: linear-gradient(135deg, var(--primary), var(--accent));
-  color: white;
-
-  border: none;
-  padding: 10px 14px;
-  border-radius: 12px;
-
-  font-weight: 600;
-  cursor: pointer;
-
-  transition: 0.2s ease;
-}
-
-.save-btn:hover {
-  transform: translateY(-2px);
-  filter: brightness(1.1);
-}
-
-.remove-btn {
-  margin-left: 10px;
-
-  background: transparent;
-  border: 1px solid var(--danger);
-  color: var(--danger);
-
-  padding: 6px 10px;
-  border-radius: 10px;
-
-  cursor: pointer;
-}
-
-.remove-btn:hover {
-  background: var(--danger);
-  color: white;
-}
-
-/* =========================
-   LAYOUT
-========================= */
-
-#center {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 20px;
-
-  padding: 24px;
-}
-
-/* =========================
-   LINKS AREA
-========================= */
-
-#next-steps {
-  display: flex;
-  border-top: 1px solid var(--border);
-}
-
-#next-steps > div {
-  flex: 1;
-  padding: 24px;
-}
-
-#next-steps ul {
-  display: flex;
-  gap: 10px;
-  margin-top: 16px;
-}
-
-#next-steps ul a {
+.job-header {
   text-decoration: none;
-
-  padding: 8px 12px;
-  border-radius: 10px;
-
-  border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.03);
-
   color: var(--text);
-
-  transition: 0.2s ease;
 }
 
-#next-steps ul a:hover {
-  border-color: var(--accent);
-  transform: translateY(-2px);
-}
-
-/* =========================
-   MOBILE
-========================= */
-
-@media (max-width: 768px) {
-  .App {
-    padding: 16px;
-  }
-
-  .job-card {
-    padding: 16px;
-  }
-
-  .job-title h3 {
-    font-size: 16px;
-  }
-
-  #next-steps {
-    flex-direction: column;
-  }
+.job-header:hover h3 {
+  color: var(--accent);
 }
