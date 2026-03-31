@@ -151,8 +151,8 @@ export default function JobSearch() {
     const overlaps = jobMax >= userMin && jobMin <= userMax;
 
     if (overlaps) {
-      score += 15;
-      reasons.push("Salary overlaps your range");
+      score += 20;
+      reasons.push("Salary matches your range");
 
       // Bonus: stronger match if fully inside range
       if (jobMin >= userMin && jobMax <= userMax) {
@@ -160,7 +160,7 @@ export default function JobSearch() {
         reasons.push("Fully within your salary range");
       }
     } else {
-      score -= 10;
+      score -= 15;
       reasons.push("Outside your salary range");
     }
   }
@@ -176,10 +176,10 @@ export default function JobSearch() {
         score += 10;
         reasons.push("Within your preferred distance");
       } else if (ratio <= 1.5) {
-        score += 0;
+        score += 2;
         reasons.push("Slightly further than preferred");
       } else {
-        score -= 10;
+        score -= 8;
         reasons.push("Far from your location");
       }
     }
@@ -188,12 +188,16 @@ export default function JobSearch() {
       const daysOld = (Date.now() - new Date(job.created)) / (1000 * 60 * 60 * 24);
 
       if (daysOld <= 3) {
-        score += 10;
+        score += 12;
         reasons.push("Recently posted");
       } else if (daysOld <= 7) {
-        score += 5;
+        score += 6;
         reasons.push("Posted this week");
+      } else if (daysOld > 30) {
+        score -= 5;
+        reasons.push("Older listing");
       }
+
     }
 
     // 4. Remote preference boost (ONLY in remote view)
@@ -208,7 +212,7 @@ export default function JobSearch() {
         text.includes("home based");
 
       if (isRemote) {
-        score += 20;
+        score += 15;
         reasons.push("Remote-friendly role");
       } else {
         score -= 5; // soft penalty, not filtered out
