@@ -72,7 +72,12 @@ export default function JobSearch() {
       const isValidPostcode =
         /^[A-Z]{1,2}\d[A-Z\d]? ?\d[A-Z]{2}$/i.test(trimmedPostcode);
 
-      const isLocal = trimmedPostcode.length > 0 && isValidPostcode;
+      const isLocal =
+        view === "local" &&
+        trimmedPostcode.length > 0 &&
+        isValidPostcode;
+
+      const isRemote = view === "remote";
 
       // validate postcode only when user is trying local search
       if (trimmedPostcode && !isValidPostcode) {
@@ -104,7 +109,7 @@ export default function JobSearch() {
       setHasLoadedRemote(true);
       setUsedRadius(data.usedRadius || radius);
 
-      setView(isLocal ? "local" : "remote");
+      
 
       setHasSearched(true);
 
@@ -161,7 +166,7 @@ export default function JobSearch() {
   }
 
     // 3. Distance
-    if (job.distance && radius) {
+    if (view === "local" && job.distance && radius) {
       const ratio = job.distance / radius;
 
       if (ratio <= 0.5) {
@@ -221,7 +226,9 @@ export default function JobSearch() {
     return (
       text.includes("remote") ||
       text.includes("work from home") ||
-      text.includes("fully remote")
+      text.includes("fully remote") ||
+      text.includes("anywhere") ||
+      text.includes("home based")
     );
   };
 
@@ -258,12 +265,18 @@ export default function JobSearch() {
     const parts = [];
 
     if (keyword) parts.push(`“${keyword}” jobs`);
-    if (postcode) parts.push(`near ${postcode}`);
-    if (radius) parts.push(`within ${radius} miles`);
+
+    if (view === "local") {
+      if (postcode) parts.push(`near ${postcode}`);
+      if (radius) parts.push(`within ${radius} miles`);
+    }
+
     if (salaryMin || salaryMax) {
-      parts.push(
-        `salary ${salaryMin || "0"} - ${salaryMax || "∞"}`
-      );
+      parts.push(`salary ${salaryMin || "0"} - ${salaryMax || "∞"}`);
+    }
+
+    if (view === "remote") {
+      parts.push("remote");
     }
 
     return parts.join(" • ");
@@ -335,6 +348,7 @@ export default function JobSearch() {
 
         <select
           value={radius}
+          disabled={view === "remote"}
           onChange={(e) => {
             setRadius(Number(e.target.value));
             setSearchTrigger(prev => prev + 1);
