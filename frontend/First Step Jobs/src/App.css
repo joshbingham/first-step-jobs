@@ -66,6 +66,49 @@ text-align: center;
 }
 
 /* =========================
+   VIEW TABS (TOP NAV)
+========================= */
+
+.view-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  justify-content: center;
+}
+
+.view-tabs button {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  color: var(--text);
+
+  padding: 8px 14px;
+  border-radius: 10px;
+
+  cursor: pointer;
+  transition: 0.2s ease;
+
+  font-weight: 500;
+}
+
+.view-tabs button:hover {
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.view-tabs button.active {
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  color: white;
+  border: none;
+
+  box-shadow: var(--glow);
+}
+
+.view-tabs button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* =========================
 SEARCH BAR
 ========================= */
 .search-bar {

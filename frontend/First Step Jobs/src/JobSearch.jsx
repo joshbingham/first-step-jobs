@@ -259,6 +259,30 @@ export default function JobSearch() {
     <div>
       <h1 className="page-title">First Step Jobs</h1>
 
+      <div className="view-tabs">
+        <button
+          className={view === "remote" ? "active" : ""}
+          onClick={() => setView("remote")}
+        >
+          🌍 Remote
+        </button>
+
+        <button
+          className={view === "local" ? "active" : ""}
+          onClick={() => setView("local")}
+          disabled={!postcode.trim()}
+        >
+          📍 Local
+        </button>
+
+        <button
+          className={view === "saved" ? "active" : ""}
+          onClick={() => setView("saved")}
+        >
+          ⭐ Saved ({savedJobs.length})
+        </button>
+      </div>
+
       <div className="search-bar">
         <input
           type="text"
