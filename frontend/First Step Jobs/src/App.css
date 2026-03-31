@@ -145,6 +145,22 @@ box-shadow: var(--glow);
 }
 
 /* =========================
+   INFO HINT (SUBTLE UX GUIDE)
+========================= */
+
+.info-hint {
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.info-hint p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+  opacity: 0.85;
+}
+
+/* =========================
 SALARY BAR
 ========================= */
 .salary-bar {

@@ -327,6 +327,12 @@ export default function JobSearch() {
         </select>
       </div>
 
+      <div className="info-hint">
+        <p>
+          💡 Tip: Add a postcode to see nearby jobs, or browse remote roles. Save jobs to track them later.
+        </p>
+      </div>
+
       <Banner
         loading={loading}
         text={
