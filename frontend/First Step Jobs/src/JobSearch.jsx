@@ -371,13 +371,6 @@ export default function JobSearch() {
       {/* ERROR + HELP */}
       {error && <p className="error-text">{error}</p>}
 
-      {!postcode.trim() && (
-        <p className="helper-text">
-          Enter a postcode to enable “Near Me Jobs”
-        </p>
-      )}
-
-      
       
       {/* RESULTS */}
       <div>
