@@ -348,8 +348,8 @@ export default function JobSearch() {
           !hasSearched && !view
             ? "Start by entering a keyword or postcode to find jobs"
             : loading
-            ? `Searching for ${buildSearchSummary()}...`
-            : `Showing results for ${buildSearchSummary() || "all jobs"}`
+            ? `Searching for ${buildSearchSummary() || "remote jobs" }...`
+            : `Showing results for ${buildSearchSummary() || "remote jobs"}`
         }
       />
 
