@@ -16,6 +16,7 @@ export default function JobSearch() {
   const [usedRadius, setUsedRadius] = useState(null);
   const [hasLoadedRemote, setHasLoadedRemote] = useState(false);
   const [searchTrigger, setSearchTrigger] = useState(0);
+  const [hasSearched, setHasSearched] = useState(false);
   
 
 
