@@ -349,7 +349,7 @@ export default function JobSearch() {
             ? "Start by entering a keyword or postcode to find jobs"
             : loading
             ? `Searching for ${buildSearchSummary() || "remote jobs" }...`
-            : `Showing results for ${buildSearchSummary() || "remote jobs"}`
+            : `Showing results for ${buildSearchSummary() || " jobs"}`
         }
       />
 
