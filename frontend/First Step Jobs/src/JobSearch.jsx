@@ -106,6 +106,8 @@ export default function JobSearch() {
 
       setView(isLocal ? "local" : "remote");
 
+      setHasSearched(true);
+
     } catch (err) {
       console.error("Failed to load jobs:", err);
       setLocalJobs([]);
@@ -337,7 +339,9 @@ export default function JobSearch() {
       <Banner
         loading={loading}
         text={
-          loading
+          !hasSearched
+            ? "Start by entering a keyword or postcode to find jobs"
+            : loading
             ? `Searching for ${buildSearchSummary()}...`
             : `Showing results for ${buildSearchSummary() || "all jobs"}`
         }
