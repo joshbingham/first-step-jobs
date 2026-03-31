@@ -359,26 +359,8 @@ export default function JobSearch() {
           <option value={20}>20 miles</option>
           <option value={50}>50 miles</option>
         </select>
-      </div>
 
-      <div className="info-hint">
-        <p>
-          💡 Tip: Add a postcode to see nearby jobs, or browse remote roles. Save jobs to track them later.
-        </p>
-      </div>
-
-      <Banner
-        loading={loading}
-        text={
-          !hasSearched && !view
-            ? "Start by entering a keyword or postcode to find jobs"
-            : loading
-            ? `Searching for ${buildSearchSummary() || "remote jobs" }...`
-            : `Showing results for ${buildSearchSummary() || " jobs"}`
-        }
-      />
-
-      <div className="salary-bar">
+        
         <select
           value={salaryMin}
           onChange={(e) => {
@@ -408,7 +390,27 @@ export default function JobSearch() {
           <option value="70000">£70,000</option>
           <option value="100000">£100,000</option>
         </select>
+      
       </div>
+
+      <div className="info-hint">
+        <p>
+          💡 Tip: Add a postcode to see nearby jobs, or browse remote roles. Save jobs to track them later.
+        </p>
+      </div>
+
+      <Banner
+        loading={loading}
+        text={
+          !hasSearched && !view
+            ? "Start by entering a keyword or postcode to find jobs"
+            : loading
+            ? `Searching for ${buildSearchSummary() || "remote jobs" }...`
+            : `Showing results for ${buildSearchSummary() || " jobs"}`
+        }
+      />
+
+      
 
       {/* ERROR + HELP */}
       {error && <p className="error-text">{error}</p>}
