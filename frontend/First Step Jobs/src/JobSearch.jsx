@@ -215,12 +215,23 @@ export default function JobSearch() {
     return (a.distance ?? Infinity) - (b.distance ?? Infinity);
   });
 
-  const sortedRemoteJobs = [...remoteJobs].sort((a, b) => {
+  const isRemoteJob = (job) => {
+    const text = `${job.title || ""} ${job.description || ""}`.toLowerCase();
+
+    return (
+      text.includes("remote") ||
+      text.includes("work from home") ||
+      text.includes("fully remote")
+    );
+  };
+
+  const filteredRemoteJobs = remoteJobs.filter(isRemoteJob);
+
+  const sortedRemoteJobs = [...filteredRemoteJobs].sort((a, b) => {
     if (sortBy === "match") {
       return getMatchDetails(b).score - getMatchDetails(a).score;
     }
 
-    // default: newest first
     return new Date(b.created || 0) - new Date(a.created || 0);
   });
 
