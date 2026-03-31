@@ -345,7 +345,7 @@ export default function JobSearch() {
       <Banner
         loading={loading}
         text={
-          !hasSearched
+          !hasSearched && !view
             ? "Start by entering a keyword or postcode to find jobs"
             : loading
             ? `Searching for ${buildSearchSummary()}...`
