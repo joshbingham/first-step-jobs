@@ -257,6 +257,34 @@ border-color: var(--accent);
 box-shadow: var(--shadow), var(--glow);
 }
 
+.match-score {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-weight: 600;
+}
+
+.match-percent {
+  font-size: 0.9rem;
+}
+
+/* background bar */
+.match-bar {
+  width: 100%;
+  height: 6px;
+  background: #e5e7eb;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+/* dynamic fill */
+.match-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #facc15, #22c55e);
+  transition: width 0.3s ease;
+}
+
 /* =========================
 JOB HEADER
 ========================= */

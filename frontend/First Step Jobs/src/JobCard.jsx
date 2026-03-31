@@ -6,6 +6,14 @@ export default function JobCard({
   isSaved,
   showDistance = true
 }) {
+
+  const getMatchLabel = (score) => {
+    if (score >= 80) return "🔥 Excellent match";
+    if (score >= 60) return "👍 Good match";
+    if (score >= 40) return "👌 Decent match";
+    return "🟡 Low match";
+  };
+
   return (
     <li className="job-card">
       <a
@@ -21,7 +29,16 @@ export default function JobCard({
       </a>
 
       <div className="match-score">
-        ⭐ {match.score}% Match
+        <div className="match-percent">
+          ⭐ {match.score}% Match
+        </div>
+
+        <div className="match-bar">
+          <div
+            className="match-fill"
+            style={{ width: `${match.score}%` }}
+          />
+        </div>
       </div>
 
       <ul className="match-reasons">
