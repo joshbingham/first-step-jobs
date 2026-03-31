@@ -387,7 +387,7 @@ export default function JobSearch() {
             <h2>Jobs Near You</h2>
 
             {usedRadius > radius && (
-              <p style={{ color: "gray" }}>
+              <p className="helper-text">
                 Showing jobs within {usedRadius} miles (expanded from {radius} miles)
               </p>
             )}
