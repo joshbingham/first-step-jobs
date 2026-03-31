@@ -232,9 +232,9 @@ export default function JobSearch() {
     );
   };
 
-  const filteredRemoteJobs = remoteJobs.filter(isRemoteJob);
+  
 
-  const sortedRemoteJobs = [...filteredRemoteJobs].sort((a, b) => {
+  const sortedRemoteJobs = [...remoteJobs].sort((a, b) => {
     if (sortBy === "match") {
       return getMatchDetails(b).score - getMatchDetails(a).score;
     }
@@ -275,8 +275,23 @@ export default function JobSearch() {
       parts.push(`salary ${salaryMin || "0"} - ${salaryMax || "∞"}`);
     }
 
+    // 4. Remote preference (ONLY in remote view)
     if (view === "remote") {
-      parts.push("remote");
+      const text = `${job.title || ""} ${job.description || ""}`.toLowerCase();
+
+      const isRemote =
+        text.includes("remote") ||
+        text.includes("work from home") ||
+        text.includes("fully remote") ||
+        text.includes("anywhere") ||
+        text.includes("home based");
+
+      if (isRemote) {
+        score += 20;
+        reasons.push("Remote-friendly role");
+      } else {
+        score -= 5; // small penalty, not a hard filter
+      }
     }
 
     return parts.join(" • ");
