@@ -28,7 +28,7 @@ export default function JobSearch() {
   const [salaryMax, setSalaryMax] = useState("");
 
   // UI state
-  const [view, setView] = useState("remote"); // default to remote (more forgiving UX)
+  const [view, setView] = useState(null); // default to remote (more forgiving UX)
 
   // Save/Unsave jobs
   const toggleSaveJob = (job) => {
@@ -234,11 +234,11 @@ export default function JobSearch() {
   });
 
   useEffect(() => {
-    if (!keyword && !postcode) return;
+    if (!view || view === "saved") return;
 
     const delay = setTimeout(() => {
       loadJobs();
-    }, 500); // slightly slower = fewer spam calls
+    }, 500);
 
     return () => clearTimeout(delay);
   }, [searchTrigger]);
@@ -265,14 +265,20 @@ export default function JobSearch() {
       <div className="view-tabs">
         <button
           className={view === "remote" ? "active" : ""}
-          onClick={() => setView("remote")}
+          onClick={() => {
+            setView("remote");
+            setSearchTrigger(prev => prev + 1);
+          }}
         >
           🌍 Remote
         </button>
 
         <button
           className={view === "local" ? "active" : ""}
-          onClick={() => setView("local")}
+          onClick={() => {
+            setView("local");
+            setSearchTrigger(prev => prev + 1);
+          }}
           disabled={!postcode.trim()}
         >
           📍 Local
@@ -384,107 +390,109 @@ export default function JobSearch() {
 
       
       {/* RESULTS */}
-      <div>
-        {/* LOCAL */}
-        {view === "local" && (
-          <>
-            <h2>Jobs Near You</h2>
+      {hasSearched && (
+        <div>
+          {/* LOCAL */}
+          {view === "local" && (
+            <>
+              <h2>Jobs Near You</h2>
 
-            {usedRadius > radius && (
-              <p className="helper-text">
-                Showing jobs within {usedRadius} miles (expanded from {radius} miles)
-              </p>
-            )}
+              {usedRadius > radius && (
+                <p className="helper-text">
+                  Showing jobs within {usedRadius} miles (expanded from {radius} miles)
+                </p>
+              )}
 
-            {localJobs.length === 0 && !loading && (
-              <p>No local jobs found.</p>
-            )}
+              {localJobs.length === 0 && !loading && (
+                <p>No local jobs found.</p>
+              )}
 
-            <ul>
-              {sortedLocalJobs.map((job) => {
-                const match = getMatchDetails(job);
-                
-                return (
-                  <JobCard
-                    key={job.id || `remotive-${job.redirect_url}`}
-                    job={job}
-                    match={match}
-                    onSave={toggleSaveJob}
-                    isSaved={isSaved(job)}
-                    showDistance={true}
-                  />
-               );
-              })}
-            </ul>
-          </>
-        )}
-
-        {/* REMOTE */}
-        {view === "remote" && (
-          <>
-            {remoteJobs.length > 0 && <h2>Remote Jobs</h2>}
-
-            {hasLoadedRemote && remoteJobs.length === 0 && !loading && (
-              <p>No remote jobs found.</p>
-            )}
-
-            <ul>
-              {sortedRemoteJobs.map((job) => {
-
-                const match = getMatchDetails(job);
-                
-                return (
-                  <JobCard
-                    key={job.id || `remotive-${job.redirect_url}`}
-                    job={job}
-                    match={match}
-                    onSave={toggleSaveJob}
-                    isSaved={isSaved(job)}
-                    showDistance={false}
-                  />
+              <ul>
+                {sortedLocalJobs.map((job) => {
+                  const match = getMatchDetails(job);
+                  
+                  return (
+                    <JobCard
+                      key={job.id || `remotive-${job.redirect_url}`}
+                      job={job}
+                      match={match}
+                      onSave={toggleSaveJob}
+                      isSaved={isSaved(job)}
+                      showDistance={true}
+                    />
                 );
-              })}
-            </ul>
-          </>
-        )}
-        {view === "saved" && (
-          <>
-            <h2>Saved Jobs</h2>
+                })}
+              </ul>
+            </>
+          )}
 
-            {savedJobs.length === 0 && <p>No saved jobs yet.</p>}
-            {view === "saved" && savedJobs.length > 0 && (
-              <div style={{ marginBottom: "16px", textAlign: "center" }}>
-                <label style={{ marginRight: "8px" }}>Sort saved jobs:</label>
+          {/* REMOTE */}
+          {view === "remote" && (
+            <>
+              {remoteJobs.length > 0 && <h2>Remote Jobs</h2>}
 
-                <select
-                  value={savedSortBy}
-                  onChange={(e) => setSavedSortBy(e.target.value)}
-                >
-                  <option value="match">Best match</option>
-                  <option value="date">Newest first</option>
-                  <option value="distance">Closest first</option>
-                </select>
-              </div>
-            )}
-            <ul>
-              {sortedSavedJobs.map((job) => {
-                const match = getMatchDetails(job);
+              {hasLoadedRemote && remoteJobs.length === 0 && !loading && (
+                <p>No remote jobs found.</p>
+              )}
 
-                return (
-                  <JobCard
-                    key={job.id || `remotive-${job.redirect_url}`}
-                    job={job}
-                    match={match}
-                    onRemove={toggleSaveJob}
-                    isSaved={isSaved(job)}
-                    showDistance={false}
-                  />
-                );
-              })}
-            </ul>
-          </>
-        )}
-      </div>
+              <ul>
+                {sortedRemoteJobs.map((job) => {
+
+                  const match = getMatchDetails(job);
+                  
+                  return (
+                    <JobCard
+                      key={job.id || `remotive-${job.redirect_url}`}
+                      job={job}
+                      match={match}
+                      onSave={toggleSaveJob}
+                      isSaved={isSaved(job)}
+                      showDistance={false}
+                    />
+                  );
+                })}
+              </ul>
+            </>
+          )}
+          {view === "saved" && (
+            <>
+              <h2>Saved Jobs</h2>
+
+              {savedJobs.length === 0 && <p>No saved jobs yet.</p>}
+              {view === "saved" && savedJobs.length > 0 && (
+                <div style={{ marginBottom: "16px", textAlign: "center" }}>
+                  <label style={{ marginRight: "8px" }}>Sort saved jobs:</label>
+
+                  <select
+                    value={savedSortBy}
+                    onChange={(e) => setSavedSortBy(e.target.value)}
+                  >
+                    <option value="match">Best match</option>
+                    <option value="date">Newest first</option>
+                    <option value="distance">Closest first</option>
+                  </select>
+                </div>
+              )}
+              <ul>
+                {sortedSavedJobs.map((job) => {
+                  const match = getMatchDetails(job);
+
+                  return (
+                    <JobCard
+                      key={job.id || `remotive-${job.redirect_url}`}
+                      job={job}
+                      match={match}
+                      onRemove={toggleSaveJob}
+                      isSaved={isSaved(job)}
+                      showDistance={false}
+                    />
+                  );
+                })}
+              </ul>
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 }
