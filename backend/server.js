@@ -12,25 +12,24 @@ app.use(cors());
 
 const PORT = 5000;
 
-
+/* =========================
+   JOBS ENDPOINT (CLEAN)
+========================= */
 app.get("/jobs", async (req, res) => {
   console.log("🔥 /jobs route hit");
-  console.log("REQ QUERY:", req.query);
 
   try {
     const { what, location, distance, salary_min, salary_max } = req.query;
 
-    const minSalary = salary_min ? Number(salary_min) : null;
-    const maxSalary = salary_max ? Number(salary_max) : null;
-
-    const distanceKm = distance ? Number(distance) * 1.609 : null;
+    const radiusMiles = Number(distance) || 10;
+    const MIN_RESULTS = 10;
 
     let userLat = null;
     let userLon = null;
 
-    const MIN_RESULTS = 10;
-
-    // 📍 Postcode → lat/lon
+    /* =========================
+       POSTCODE → LAT/LON
+    ========================== */
     if (location) {
       try {
         const geoRes = await axios.get(
@@ -39,95 +38,65 @@ app.get("/jobs", async (req, res) => {
 
         userLat = geoRes.data.result.latitude;
         userLon = geoRes.data.result.longitude;
-
       } catch (err) {
-        console.log("⚠️ Invalid postcode, skipping distance filter");
-        userLat = null;
-        userLon = null;
+        console.log("⚠️ Invalid postcode");
       }
     }
 
-    // =========================
-    // 🧠 1. FETCH ADZUNA
-    // =========================
-    const radiusSteps = [distance || 10, 20, 50];
-    let adzunaJobs = [];
-    let usedRadius = Number(distance) || 10;
-
-    for (const radiusMiles of radiusSteps) {
-      usedRadius = radiusMiles;
-      console.log(`🔍 Searching within ${radiusMiles} miles`);
-
-      const responses = await Promise.all(
-        [1, 2, 3].map(page =>
-          axios.get(`https://api.adzuna.com/v1/api/jobs/gb/search/${page}`, {
+    /* =========================
+       1. ADZUNA
+    ========================== */
+    const responses = await Promise.all(
+      [1, 2, 3].map((page) =>
+        axios.get(
+          `https://api.adzuna.com/v1/api/jobs/gb/search/${page}`,
+          {
             params: {
               app_id: process.env.ADZUNA_APP_ID,
               app_key: process.env.ADZUNA_APP_KEY,
               what: what || "",
               where: location || "",
-              distance: radiusMiles, // 👈 KEY LINE
+              distance: radiusMiles,
               results_per_page: 50,
             },
-          })
+          }
         )
-      );
+      )
+    );
 
-      const jobsBatch = responses.flatMap(res =>
-        res.data.results.map(job => ({
-          ...job,
-          source: "adzuna",
-          created: job.created,
-        }))
-      );
+    let adzunaJobs = responses.flatMap((res) =>
+      res.data.results.map((job) => ({
+        ...job,
+        source: "adzuna",
+      }))
+    );
 
-      adzunaJobs = jobsBatch;
-
-      // ✅ STOP if enough jobs found
-      if (adzunaJobs.length >= MIN_RESULTS) {
-        console.log(`✅ Found ${adzunaJobs.length} jobs at ${radiusMiles} miles`);
-        break;
-      }
-    }
-
-    // =========================
-    // 🧠 2. FETCH REMOTIVE
-    // =========================
+    /* =========================
+       2. REMOTIVE
+    ========================== */
     const remotiveRes = await axios.get(
       "https://remotive.com/api/remote-jobs",
       {
-        params: {
-          search: what || "",
-        },
+        params: { search: what || "" },
       }
     );
 
-    const remotiveJobs = remotiveRes.data.jobs;
-
-    const remotiveMapped = remotiveJobs.map((job) => ({
+    const remotiveJobs = remotiveRes.data.jobs.map((job) => ({
       title: job.title,
-      company: {
-        display_name: job.company_name,
-      },
-      location: {
-        display_name: job.candidate_required_location,
-      },
+      company: { display_name: job.company_name },
+      location: { display_name: job.candidate_required_location },
       salary_min: null,
       salary_max: null,
       redirect_url: job.url,
       latitude: null,
       longitude: null,
       source: "remotive",
-      isRemote: true,
       created: job.publication_date,
     }));
 
-    console.log("Remotive jobs:", remotiveMapped.length);
-
-    // =========================
-    // 🧠 3. FETCH ARBEITNOW
-    // =========================
-
+    /* =========================
+       3. ARBEITNOW
+    ========================== */
     let arbeitnowJobs = [];
 
     try {
@@ -137,12 +106,8 @@ app.get("/jobs", async (req, res) => {
 
       arbeitnowJobs = arbeitRes.data.data.map((job) => ({
         title: job.title,
-        company: {
-          display_name: job.company_name || "Unknown",
-        },
-        location: {
-          display_name: job.location || "Remote",
-        },
+        company: { display_name: job.company_name || "Unknown" },
+        location: { display_name: job.location || "Remote" },
         salary_min: null,
         salary_max: null,
         redirect_url: job.url,
@@ -152,122 +117,74 @@ app.get("/jobs", async (req, res) => {
         isRemote: job.remote ?? true,
         created: job.created_at,
       }));
-
-      console.log("Arbeitnow jobs:", arbeitnowJobs.length);
-
     } catch (err) {
-      console.log("⚠️ Arbeitnow failed:", err.message);
+      console.log("⚠️ Arbeitnow failed");
     }
-    // =========================
-    // 🔗 4. MERGE JOBS
-    // =========================
-    let jobs = [
-      ...adzunaJobs,
-      ...remotiveMapped,
-      ...arbeitnowJobs,
-    ];
 
-    const uniqueJobs = Array.from(
+    /* =========================
+       MERGE + DEDUPE
+    ========================== */
+    let jobs = [...adzunaJobs, ...remotiveJobs, ...arbeitnowJobs];
+
+    jobs = Array.from(
       new Map(
-        jobs.map(job => [
+        jobs.map((job) => [
           `${job.title}-${job.company?.display_name}-${job.location?.display_name}`,
-          job
+          job,
         ])
       ).values()
     );
 
-    jobs = uniqueJobs;
+    /* =========================
+       DISTANCE ONLY (NO COMMUTE HERE)
+    ========================== */
+    if (userLat && userLon) {
+      jobs = jobs.map((job) => {
+        if (!job.latitude || !job.longitude) return job;
 
+        const distanceKm = getDistance(
+          userLat,
+          userLon,
+          job.latitude,
+          job.longitude
+        );
 
-
-    // =========================
-    // 📍 4. GET DISTANCE
-    // =========================
-    if (userLat && userLon && distanceKm) {
-      let firstCommuteAdded = false;
-
-      jobs = await Promise.all(
-        jobs.map(async (job) => {
-          if (!job.latitude || !job.longitude) {
-            return job;
-          }
-
-          const jobDistance = getDistance(
-            userLat,
-            userLon,
-            job.latitude,
-            job.longitude
-          );
-
-          let commute = null;
-
-          // 🚗 ONLY ONE JOB gets Google Maps call (safe test)
-          if (!firstCommuteAdded) {
-            commute = await getCommuteTime(
-              userLat,
-              userLon,
-              job.latitude,
-              job.longitude
-            );
-
-            firstCommuteAdded = true;
-          }
-
-          return {
-            ...job,
-            distance: jobDistance,
-            commute, // 👈 NEW FIELD
-          };
-        })
-      );
+        return {
+          ...job,
+          distance: distanceKm,
+        };
+      });
     }
 
-    // =========================
-    // 🧪 DEBUG OUTPUT
-    // =========================
-    console.log(
-      jobs.slice(0, 10).map(j => ({
-        title: j.title,
-        source: j.source,
-        lat: j.latitude,
-        lon: j.longitude,
-        distance: j.distance
-      }))
-    );
-
-    console.log(jobs.map(j => j.source));
-
-    console.log(jobs[0].created);
-
+    /* =========================
+       SPLIT RESULTS
+    ========================== */
     const localJobs = jobs
-      .filter(job => job.latitude && job.longitude)
+      .filter((job) => job.latitude && job.longitude)
       .sort((a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity));
 
     const remoteJobs = jobs.filter(
-      job => job.source === "remotive" || !job.latitude || !job.longitude
+      (job) =>
+        job.source === "remotive" ||
+        job.isRemote ||
+        !job.latitude ||
+        !job.longitude
     );
 
     res.json({
       localJobs,
       remoteJobs,
-      usedRadius
+      usedRadius: radiusMiles,
     });
-
-  } catch (error) {
-    console.error(
-      "Error fetching jobs:",
-      error.response?.data || error.message
-    );
+  } catch (err) {
+    console.error("❌ /jobs error:", err.message);
     res.status(500).json({ error: "Failed to fetch jobs" });
   }
 });
 
-if (process.env.NODE_ENV !== "test") {
-  app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-  });
-}
-
+/* =========================
+   TEST COMMUTE ENDPOINT
+========================= */
 app.get("/test-commute", async (req, res) => {
   const result = await getCommuteTime(
     51.5074,
@@ -278,5 +195,36 @@ app.get("/test-commute", async (req, res) => {
 
   res.json(result);
 });
+
+app.get("/commute", async (req, res) => {
+  try {
+    const { originLat, originLon, destLat, destLon } = req.query;
+
+    if (!originLat || !originLon || !destLat || !destLon) {
+      return res.status(400).json({ error: "Missing coordinates" });
+    }
+
+    const result = await getCommuteTime(
+      Number(originLat),
+      Number(originLon),
+      Number(destLat),
+      Number(destLon)
+    );
+
+    res.json(result);
+  } catch (err) {
+    console.error("Commute error:", err.message);
+    res.status(500).json({ error: "Failed to calculate commute" });
+  }
+});
+
+/* =========================
+   START SERVER
+========================= */
+if (process.env.NODE_ENV !== "test") {
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running on http://localhost:${PORT}`);
+  });
+}
 
 export default app;

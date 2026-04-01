@@ -4,9 +4,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 export async function getCommuteTime(originLat, originLon, destLat, destLon) {
-  if (!process.env.GOOGLE_MAPS_API_KEY) {
-    return null;
-  }
+  console.log("🔑 API KEY EXISTS:", !!process.env.GOOGLE_MAPS_API_KEY);
 
   try {
     const url = "https://maps.googleapis.com/maps/api/distancematrix/json";
@@ -20,15 +18,20 @@ export async function getCommuteTime(originLat, originLon, destLat, destLon) {
       },
     });
 
+    console.log("📦 Google response:", res.data);
+
     const element = res.data.rows?.[0]?.elements?.[0];
 
-    if (element?.status !== "OK") return null;
+    console.log("📍 element:", element);
+
+    if (!element || element.status !== "OK") return null;
 
     return {
       durationSeconds: element.duration.value,
       durationText: element.duration.text,
     };
   } catch (err) {
+    console.log("❌ Google API error:", err.response?.data || err.message);
     return null;
   }
 }

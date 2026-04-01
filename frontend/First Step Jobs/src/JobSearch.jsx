@@ -309,6 +309,7 @@ export default function JobSearch() {
 
   const getCommuteTimes = async (origin, destination) => {
     const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+    console.log("API KEY:", import.meta.env.VITE_GOOGLE_MAPS_API_KEY);
 
     const modes = ["driving", "walking", "transit"];
 
@@ -476,6 +477,19 @@ export default function JobSearch() {
 
       {/* ERROR + HELP */}
       {error && <p className="error-text">{error}</p>}
+
+      <button
+        onClick={async () => {
+          const result = await getCommuteTimes(
+            "SW11 1AA",
+            "EC1A 1AA"
+          );
+
+          console.log("COMMUTE RESULT:", result);
+        }}
+      >
+        Test Commute API
+      </button>
 
       
       {/* RESULTS */}
