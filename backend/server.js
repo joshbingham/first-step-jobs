@@ -27,6 +27,38 @@ function getDistance(lat1, lon1, lat2, lon2) {
   return R * c;
 }
 
+async function getCommuteTime(originLat, originLon, destLat, destLon) {
+  if (!process.env.GOOGLE_MAPS_API_KEY) {
+    console.log("⚠️ Missing Google Maps API key");
+    return null;
+  }
+
+  try {
+    const url = "https://maps.googleapis.com/maps/api/distancematrix/json";
+
+    const res = await axios.get(url, {
+      params: {
+        origins: `${originLat},${originLon}`,
+        destinations: `${destLat},${destLon}`,
+        key: process.env.GOOGLE_MAPS_API_KEY,
+        mode: "driving",
+      },
+    });
+
+    const element = res.data.rows?.[0]?.elements?.[0];
+
+    if (element?.status !== "OK") return null;
+
+    return {
+      durationSeconds: element.duration.value,
+      durationText: element.duration.text,
+    };
+  } catch (err) {
+    console.log("⚠️ Google Maps API error:", err.message);
+    return null;
+  }
+}
+
 app.get("/jobs", async (req, res) => {
   console.log("🔥 /jobs route hit");
   console.log("REQ QUERY:", req.query);
@@ -259,4 +291,15 @@ app.get("/jobs", async (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
+});
+
+app.get("/test-commute", async (req, res) => {
+  const result = await getCommuteTime(
+    51.5074,
+    -0.1278,
+    51.5171,
+    -0.1062
+  );
+
+  res.json(result);
 });
