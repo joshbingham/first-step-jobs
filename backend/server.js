@@ -3,6 +3,7 @@ import cors from "cors";
 import axios from "axios";
 import dotenv from "dotenv";
 import { getDistance } from "./utils/distance.js";
+import { getCommuteTime } from "./services/commuteService.js";
 
 dotenv.config();
 
@@ -11,39 +12,6 @@ app.use(cors());
 
 const PORT = 5000;
 
-
-
-async function getCommuteTime(originLat, originLon, destLat, destLon) {
-  if (!process.env.GOOGLE_MAPS_API_KEY) {
-    console.log("⚠️ Missing Google Maps API key");
-    return null;
-  }
-
-  try {
-    const url = "https://maps.googleapis.com/maps/api/distancematrix/json";
-
-    const res = await axios.get(url, {
-      params: {
-        origins: `${originLat},${originLon}`,
-        destinations: `${destLat},${destLon}`,
-        key: process.env.GOOGLE_MAPS_API_KEY,
-        mode: "driving",
-      },
-    });
-
-    const element = res.data.rows?.[0]?.elements?.[0];
-
-    if (element?.status !== "OK") return null;
-
-    return {
-      durationSeconds: element.duration.value,
-      durationText: element.duration.text,
-    };
-  } catch (err) {
-    console.log("⚠️ Google Maps API error:", err.message);
-    return null;
-  }
-}
 
 app.get("/jobs", async (req, res) => {
   console.log("🔥 /jobs route hit");
@@ -294,9 +262,11 @@ app.get("/jobs", async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
+if (process.env.NODE_ENV !== "test") {
+  app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+  });
+}
 
 app.get("/test-commute", async (req, res) => {
   const result = await getCommuteTime(
@@ -308,3 +278,5 @@ app.get("/test-commute", async (req, res) => {
 
   res.json(result);
 });
+
+export default app;
