@@ -65,6 +65,12 @@ export default function JobCard({
           </p>
         )}
 
+        {showDistance && (
+          <p>
+            🚗 Commute time: calculating...
+          </p>
+        )}
+
         {job.created && (
           <p>
             🕒 {new Date(job.created).toLocaleDateString()}
