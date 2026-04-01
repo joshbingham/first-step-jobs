@@ -1,4 +1,4 @@
-import { getDistance } from "../utils/distance.js";
+const { getDistance } = require("../utils/distance");
 
 test("distance between same points is 0", () => {
   expect(getDistance(0, 0, 0, 0)).toBe(0);
