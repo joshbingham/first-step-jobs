@@ -230,9 +230,13 @@ app.get("/jobs", async (req, res) => {
     // 📍 4. GET DISTANCE
     // =========================
     if (userLat && userLon && distanceKm) {
-      jobs = jobs
-        .map((job) => {
-          if (!job.latitude || !job.longitude) return job; // keep non-geolocated (Remotive)
+      let firstCommuteAdded = false;
+
+      jobs = await Promise.all(
+        jobs.map(async (job) => {
+          if (!job.latitude || !job.longitude) {
+            return job;
+          }
 
           const jobDistance = getDistance(
             userLat,
@@ -241,12 +245,27 @@ app.get("/jobs", async (req, res) => {
             job.longitude
           );
 
+          let commute = null;
+
+          // 🚗 ONLY ONE JOB gets Google Maps call (safe test)
+          if (!firstCommuteAdded) {
+            commute = await getCommuteTime(
+              userLat,
+              userLon,
+              job.latitude,
+              job.longitude
+            );
+
+            firstCommuteAdded = true;
+          }
+
           return {
             ...job,
             distance: jobDistance,
+            commute, // 👈 NEW FIELD
           };
         })
-        
+      );
     }
 
     // =========================
