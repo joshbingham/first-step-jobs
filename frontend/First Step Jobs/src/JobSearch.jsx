@@ -17,6 +17,7 @@ export default function JobSearch() {
   const [hasLoadedRemote, setHasLoadedRemote] = useState(false);
   const [searchTrigger, setSearchTrigger] = useState(0);
   const [hasSearched, setHasSearched] = useState(false);
+  const [commuteTimes, setCommuteTimes] = useState({});
   
 
 
