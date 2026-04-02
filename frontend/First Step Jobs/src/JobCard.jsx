@@ -5,7 +5,7 @@ export default function JobCard({
   onRemove,
   isSaved,
   showDistance = true,
-  commuteTimes = null
+  commuteTime = null
 }) {
 
   const getMatchLabel = (score) => {
@@ -66,12 +66,8 @@ export default function JobCard({
           </p>
         )}
 
-        {commuteTimes && (
-          <div className="commute-times">
-            <p>🚗 Driving: {commuteTimes?.driving ?? "—"}</p>
-            <p>🚶 Walking: {commuteTimes?.walking ?? "—"}</p>
-            <p>🚌 Transit: {commuteTimes?.transit ?? "—"}</p>
-          </div>
+        {commuteTime && (
+          <p>🚗 {commuteTime} commute</p>
         )}
 
         {job.created && (

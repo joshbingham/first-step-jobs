@@ -46,30 +46,26 @@ app.get("/jobs", async (req, res) => {
     /* =========================
        1. ADZUNA
     ========================== */
-    const responses = await Promise.all(
-      [1, 2, 3].map((page) =>
-        axios.get(
-          `https://api.adzuna.com/v1/api/jobs/gb/search/${page}`,
-          {
-            params: {
-              app_id: process.env.ADZUNA_APP_ID,
-              app_key: process.env.ADZUNA_APP_KEY,
-              what: what || "",
-              where: location || "",
-              distance: radiusMiles,
-              results_per_page: 50,
-            },
-          }
-        )
-      )
+    const response = await axios.get(
+      "https://api.adzuna.com/v1/api/jobs/gb/search/1",
+      {
+        params: {
+          app_id: process.env.ADZUNA_APP_ID,
+          app_key: process.env.ADZUNA_APP_KEY,
+          what: what || "",
+          where: location || "",
+          distance: radiusMiles,
+          results_per_page: 50,
+        },
+      }
     );
 
-    let adzunaJobs = responses.flatMap((res) =>
-      res.data.results.map((job) => ({
-        ...job,
-        source: "adzuna",
-      }))
-    );
+    let adzunaJobs = response.data.results.map((job) => ({
+      ...job,
+      source: "adzuna",
+    }));
+
+    
 
     /* =========================
        2. REMOTIVE

@@ -490,6 +490,7 @@ export default function JobSearch() {
                       onSave={toggleSaveJob}
                       isSaved={isSaved(job)}
                       showDistance={true}
+                      commuteTime={job.commute?.durationText}
                     />
                 );
                 })}
