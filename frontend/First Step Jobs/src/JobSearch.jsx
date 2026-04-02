@@ -66,6 +66,29 @@ export default function JobSearch() {
       console.error("Test commute failed:", err);
     }
   };
+
+  // Fetch commute time for a job
+  const fetchCommuteForJob = async (job) => {
+    try {
+      if (!job.latitude || !job.longitude) return;
+
+      // You’ll later replace this with user postcode coords
+      const originLat = 51.5074;
+      const originLon = -0.1278;
+
+      const url = `http://localhost:5000/commute?originLat=${originLat}&originLon=${originLon}&destLat=${job.latitude}&destLon=${job.longitude}`;
+
+      const res = await fetch(url);
+      const data = await res.json();
+
+      setCommuteTimes((prev) => ({
+        ...prev,
+        [job.id]: data,
+      }));
+    } catch (err) {
+      console.error("Commute fetch failed:", err);
+    }
+  };
   
 
   // Validation
@@ -491,7 +514,8 @@ export default function JobSearch() {
                       onSave={toggleSaveJob}
                       isSaved={isSaved(job)}
                       showDistance={true}
-                      commuteTime={job.commute?.durationText}
+                      onFetchCommute={fetchCommuteForJob}
+                      commuteTimes={commuteTimes[job.id]}
                     />
                 );
                 })}
