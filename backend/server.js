@@ -131,6 +131,8 @@ app.get("/jobs", async (req, res) => {
       ).values()
     );
 
+    console.log("SAMPLE JOB:", jobs[0]);
+
     /* =========================
        DISTANCE ONLY (NO COMMUTE HERE)
     ========================== */
@@ -148,6 +150,7 @@ app.get("/jobs", async (req, res) => {
         return {
           ...job,
           distance: distanceKm,
+          hasCoords: true,
         };
       });
     }
@@ -171,6 +174,10 @@ app.get("/jobs", async (req, res) => {
       localJobs,
       remoteJobs,
       usedRadius: radiusMiles,
+      userLocation: {
+        lat: userLat,
+        lon: userLon,
+      },
     });
   } catch (err) {
     console.error("❌ /jobs error:", err.message);

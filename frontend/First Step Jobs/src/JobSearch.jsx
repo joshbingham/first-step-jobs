@@ -18,6 +18,7 @@ export default function JobSearch() {
   const [searchTrigger, setSearchTrigger] = useState(0);
   const [hasSearched, setHasSearched] = useState(false);
   const [commuteTimes, setCommuteTimes] = useState({});
+  const [userLocation, setUserLocation] = useState(null);
   
 
 
@@ -81,10 +82,18 @@ export default function JobSearch() {
       const res = await fetch(url);
       const data = await res.json();
 
-      setCommuteTimes((prev) => ({
-        ...prev,
-        [job.id]: data,
-      }));
+      const jobKey = String(job.id);
+
+      setCommuteTimes((prev) => {
+        const updated = {
+          ...prev,
+          [jobKey]: data,
+        };
+
+        console.log("UPDATED COMMUTE TIMES:", updated);
+
+        return updated;
+      });
     } catch (err) {
       console.error("Commute fetch failed:", err);
     }
@@ -344,6 +353,8 @@ export default function JobSearch() {
 
     return parts.join(" • ");
   };
+
+  console.log("COMMUTE STATE SNAPSHOT:", commuteTimes);
   
 
   return (
@@ -504,7 +515,10 @@ export default function JobSearch() {
 
               <ul>
                 {sortedLocalJobs.map((job) => {
+                  const jobKey = String(job.id);
                   const match = getMatchDetails(job);
+                  
+                  console.log("JOB CARD RENDER:", job.id, commuteTimes[job.id]);
                   
                   return (
                     <JobCard
@@ -514,9 +528,10 @@ export default function JobSearch() {
                       onSave={toggleSaveJob}
                       isSaved={isSaved(job)}
                       showDistance={true}
-                      onFetchCommute={fetchCommuteForJob}
-                      commuteTimes={commuteTimes[job.id]}
+                      onFetchCommute={() => fetchCommuteForJob(job)}
+                      commuteTime={commuteTimes[jobKey]}
                     />
+
                 );
                 })}
               </ul>

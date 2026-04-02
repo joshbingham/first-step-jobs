@@ -9,6 +9,7 @@ export default function JobCard({
   onFetchCommute,
 }) {
 
+  console.log("COMMUTE PROP:", commuteTime);
   const getMatchLabel = (score) => {
     if (score >= 80) return "🔥 Excellent match";
     if (score >= 60) return "👍 Good match";
