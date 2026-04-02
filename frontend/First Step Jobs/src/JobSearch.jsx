@@ -73,9 +73,10 @@ export default function JobSearch() {
     try {
       if (!job.latitude || !job.longitude) return;
 
-      // You’ll later replace this with user postcode coords
-      const originLat = 51.5074;
-      const originLon = -0.1278;
+      if (!userLocation) return;
+
+      const originLat = userLocation.lat;
+      const originLon = userLocation.lon;
 
       const url = `http://localhost:5000/commute?originLat=${originLat}&originLon=${originLon}&destLat=${job.latitude}&destLon=${job.longitude}`;
 
@@ -112,6 +113,7 @@ export default function JobSearch() {
   const loadJobs = async () => {
     setLoading(true);
     setError("");
+    
 
     try {
       const trimmedPostcode = postcode.trim();
@@ -155,6 +157,7 @@ export default function JobSearch() {
       setRemoteJobs(data.remoteJobs || []);
       setHasLoadedRemote(true);
       setUsedRadius(data.usedRadius || radius);
+      setUserLocation(data.userLocation);
 
       
 
