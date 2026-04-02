@@ -502,9 +502,7 @@ export default function JobSearch() {
       {/* ERROR + HELP */}
       {error && <p className="error-text">{error}</p>}
 
-      <button onClick={testCommute}>
-        Test Commute API
-      </button>
+      
 
       
       {/* RESULTS */}
