@@ -71,41 +71,20 @@ export default function JobSearch() {
 
   // Fetch commute time for a job
   const fetchCommuteForJob = async (job) => {
-    console.log("FETCH COMMUTE CLICKED", job.id);
-    console.log("USER LOCATION STATE:", userLocation);
     try {
       if (!job.latitude || !job.longitude) return;
+      if (!userLocation?.lat || !userLocation?.lon) return;
 
-      if (!userLocation?.lat || !userLocation?.lon) {
-        console.log("❌ Missing user location", userLocation);
-        return;
-      }
+      const res = await fetch(
+        `http://localhost:5000/commute?originLat=${userLocation.lat}&originLon=${userLocation.lon}&destLat=${job.latitude}&destLon=${job.longitude}&mode=${travelMode}`
+      );
 
-      const originLat = userLocation.lat;
-      const originLon = userLocation.lon;
-
-      const url = `http://localhost:5000/commute?originLat=${originLat}&originLon=${originLon}&destLat=${job.latitude}&destLon=${job.longitude}&mode=${travelMode}`;
-      console.log("🚀 SENDING COMMUTE REQUEST", {
-        originLat,
-        originLon,
-        destLat: job.latitude,
-        destLon: job.longitude
-      });
-      const res = await fetch(url);
       const data = await res.json();
 
-      const jobKey = String(job.id);
-
-      setCommuteTimes((prev) => {
-        const updated = {
-          ...prev,
-          [jobKey]: data,
-        };
-
-        console.log("UPDATED COMMUTE TIMES:", updated);
-
-        return updated;
-      });
+      setCommuteTimes((prev) => ({
+        ...prev,
+        [String(job.id)]: data,
+      }));
     } catch (err) {
       console.error("Commute fetch failed:", err);
     }
@@ -347,6 +326,14 @@ export default function JobSearch() {
     return () => clearTimeout(delay);
   }, [searchTrigger]);
 
+  useEffect(() => {
+    if (!localJobs.length || !userLocation) return;
+
+    localJobs.forEach((job) => {
+      fetchCommuteForJob(job);
+    });
+  }, [localJobs, userLocation, travelMode]);
+
   const buildSearchSummary = () => {
     const parts = [];
 
@@ -555,6 +542,7 @@ export default function JobSearch() {
                       showDistance={true}
                       onFetchCommute={() => fetchCommuteForJob(job)}
                       commuteTime={commuteTimes[jobKey]}
+                      travelMode={travelMode}
                     />
 
                 );

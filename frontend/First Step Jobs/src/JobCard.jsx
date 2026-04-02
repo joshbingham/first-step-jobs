@@ -7,6 +7,7 @@ export default function JobCard({
   showDistance = true,
   commuteTime = null,
   onFetchCommute,
+  travelMode,
 }) {
 
   console.log("COMMUTE PROP:", commuteTime);
@@ -70,7 +71,15 @@ export default function JobCard({
 
         {commuteTime && (
           <div className="commute-times">
-            <p>🚗 {commuteTime.durationText}</p>
+            <p>
+              {travelMode === "driving" && "🚗"}
+              {travelMode === "walking" && "🚶"}
+              {travelMode === "bicycling" && "🚴"}
+              {travelMode === "transit" && "🚆"}
+
+              {" "}
+              {commuteTime.durationText}
+            </p>
           </div>
         )}
 
@@ -83,9 +92,7 @@ export default function JobCard({
 
       <div className="job-actions">
 
-        <button onClick={() => onFetchCommute(job)}>
-          🚗 Get commute
-        </button>
+        
 
         {!onRemove && (
           <button
