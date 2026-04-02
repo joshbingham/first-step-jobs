@@ -19,6 +19,7 @@ export default function JobSearch() {
   const [hasSearched, setHasSearched] = useState(false);
   const [commuteTimes, setCommuteTimes] = useState({});
   const [userLocation, setUserLocation] = useState(null);
+  const [travelMode, setTravelMode] = useState("driving");
   
 
 
@@ -70,16 +71,26 @@ export default function JobSearch() {
 
   // Fetch commute time for a job
   const fetchCommuteForJob = async (job) => {
+    console.log("FETCH COMMUTE CLICKED", job.id);
+    console.log("USER LOCATION STATE:", userLocation);
     try {
       if (!job.latitude || !job.longitude) return;
 
-      if (!userLocation) return;
+      if (!userLocation?.lat || !userLocation?.lon) {
+        console.log("❌ Missing user location", userLocation);
+        return;
+      }
 
       const originLat = userLocation.lat;
       const originLon = userLocation.lon;
 
-      const url = `http://localhost:5000/commute?originLat=${originLat}&originLon=${originLon}&destLat=${job.latitude}&destLon=${job.longitude}`;
-
+      const url = `http://localhost:5000/commute?originLat=${originLat}&originLon=${originLon}&destLat=${job.latitude}&destLon=${job.longitude}&mode=${travelMode}`;
+      console.log("🚀 SENDING COMMUTE REQUEST", {
+        originLat,
+        originLon,
+        destLat: job.latitude,
+        destLon: job.longitude
+      });
       const res = await fetch(url);
       const data = await res.json();
 
@@ -404,6 +415,17 @@ export default function JobSearch() {
             setSearchTrigger(prev => prev + 1);
           }}
         />
+
+        
+        <div className="commute-controls">
+          <label>Travel mode:</label>
+          <select value={travelMode} onChange={(e) => setTravelMode(e.target.value)}>
+            <option value="driving">🚗 Car</option>
+            <option value="walking">🚶 Walk</option>
+            <option value="bicycling">🚴 Bike</option>
+            <option value="transit">🚆 Transit</option>
+          </select>
+        </div>
 
         <input
           type="text"

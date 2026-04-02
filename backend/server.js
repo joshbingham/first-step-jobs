@@ -201,7 +201,7 @@ app.get("/test-commute", async (req, res) => {
 
 app.get("/commute", async (req, res) => {
   try {
-    const { originLat, originLon, destLat, destLon } = req.query;
+    const { originLat, originLon, destLat, destLon, mode } = req.query;
 
     if (!originLat || !originLon || !destLat || !destLon) {
       return res.status(400).json({ error: "Missing coordinates" });
@@ -211,8 +211,10 @@ app.get("/commute", async (req, res) => {
       Number(originLat),
       Number(originLon),
       Number(destLat),
-      Number(destLon)
+      Number(destLon),
+      mode || "driving"
     );
+  
 
     res.json(result);
   } catch (err) {

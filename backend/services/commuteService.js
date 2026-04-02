@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-export async function getCommuteTime(originLat, originLon, destLat, destLon) {
+export async function getCommuteTime(originLat, originLon, destLat, destLon, mode = "driving") {
   console.log("🔑 API KEY EXISTS:", !!process.env.GOOGLE_MAPS_API_KEY);
 
   try {
@@ -14,7 +14,7 @@ export async function getCommuteTime(originLat, originLon, destLat, destLon) {
         origins: `${originLat},${originLon}`,
         destinations: `${destLat},${destLon}`,
         key: process.env.GOOGLE_MAPS_API_KEY,
-        mode: "driving",
+        mode,
       },
     });
 

@@ -145,6 +145,65 @@ box-shadow: var(--glow);
 }
 
 /* =========================
+COMMUTE / TRAVEL MODE
+========================= */
+
+.commute-controls {
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  background: var(--panel);
+  border: 1px solid var(--border);
+
+  padding: 6px 10px;   /* 🔽 reduced from 10px 12px */
+  border-radius: 10px;
+
+  color: var(--text);
+
+  height: 38px;        /* 🔥 forces consistent height with inputs */
+  box-sizing: border-box;
+
+  transition: 0.2s ease;
+}
+
+.commute-controls:hover {
+  border-color: var(--accent);
+  box-shadow: var(--glow);
+}
+
+.commute-controls label {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.commute-controls select {
+  background: transparent;
+  border: none;
+
+  color: var(--text);
+
+  font-size: 14px;
+  font-weight: 500;
+
+  height: 100%;        /* 🔥 important */
+  padding: 0;          /* 🔥 removes extra vertical space */
+  line-height: 1;
+
+  outline: none;
+  cursor: pointer;
+}
+
+/* optional: make dropdown options readable */
+.commute-controls select option {
+  background: var(--panel);
+  color: var(--text);
+}
+
+/* =========================
    INFO HINT (SUBTLE UX GUIDE)
 ========================= */
 
