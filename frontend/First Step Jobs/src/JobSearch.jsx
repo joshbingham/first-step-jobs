@@ -51,6 +51,20 @@ export default function JobSearch() {
     return savedJobs.some(j => j.id === job.id);
   };
 
+  // Test commute
+  const testCommute = async () => {
+    try {
+      const res = await fetch(
+        "http://localhost:5000/commute?originLat=51.5074&originLon=-0.1278&destLat=51.5171&destLon=-0.1062"
+      );
+
+      const data = await res.json();
+
+      console.log("COMMUTE RESULT:", data);
+    } catch (err) {
+      console.error("Test commute failed:", err);
+    }
+  };
   
 
   // Validation
@@ -478,16 +492,7 @@ export default function JobSearch() {
       {/* ERROR + HELP */}
       {error && <p className="error-text">{error}</p>}
 
-      <button
-        onClick={async () => {
-          const result = await getCommuteTimes(
-            "SW11 1AA",
-            "EC1A 1AA"
-          );
-
-          console.log("COMMUTE RESULT:", result);
-        }}
-      >
+      <button onClick={testCommute}>
         Test Commute API
       </button>
 
