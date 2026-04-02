@@ -320,44 +320,7 @@ export default function JobSearch() {
 
     return parts.join(" • ");
   };
-
-  const getCommuteTimes = async (origin, destination) => {
-    const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-    console.log("API KEY:", import.meta.env.VITE_GOOGLE_MAPS_API_KEY);
-
-    const modes = ["driving", "walking", "transit"];
-
-    const results = {};
-
-    try {
-      await Promise.all(
-        modes.map(async (mode) => {
-          const url = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${encodeURIComponent(
-            origin
-          )}&destinations=${encodeURIComponent(destination)}&mode=${mode}&key=${apiKey}`;
-
-          const res = await fetch(url);
-          const data = await res.json();
-
-          const element = data?.rows?.[0]?.elements?.[0];
-
-          results[mode] =
-            element?.status === "OK"
-              ? element?.duration?.text
-              : "N/A";
-        })
-      );
-
-      return {
-        driving: results.driving,
-        walking: results.walking,
-        transit: results.transit,
-      };
-    } catch (err) {
-      console.error("Commute API error:", err);
-      return null;
-    }
-  };
+  
 
   return (
     <div>
