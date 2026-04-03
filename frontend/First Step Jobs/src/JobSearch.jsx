@@ -506,7 +506,7 @@ export default function JobSearch() {
 
       
       {/* RESULTS */}
-      {hasSearched && (
+      {(hasSearched || view === "saved") && (
         <div>
           {/* LOCAL */}
           {view === "local" && (
