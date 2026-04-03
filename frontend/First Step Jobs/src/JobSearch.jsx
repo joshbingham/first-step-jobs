@@ -485,17 +485,18 @@ export default function JobSearch() {
           💡 Tip: Add a postcode to see nearby jobs, or browse remote roles. Save jobs to track them later.
         </p>
       </div>
-
-      <Banner
-        loading={loading}
-        text={
-          !hasSearched && !view
-            ? "Start by entering a keyword or postcode to find jobs"
-            : loading
-            ? `Searching for ${buildSearchSummary() || "remote jobs" }...`
-            : `Showing results for ${buildSearchSummary() || " jobs"}`
-        }
-      />
+      {view !== "saved" && (
+        <Banner
+          loading={loading}
+          text={
+            !hasSearched && !view
+              ? "Start by entering a keyword or postcode to find jobs"
+              : loading
+              ? `Searching for ${buildSearchSummary() || "remote jobs" }...`
+              : `Showing results for ${buildSearchSummary() || " jobs"}`
+          }
+        />
+      )}
 
       
 
