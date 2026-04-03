@@ -92,25 +92,24 @@ export default function JobCard({
 
       <div className="job-actions">
 
-        
-
-        {!onRemove && (
-          <button
-            className="save-btn"
-            onClick={() => onSave(job)}
-          >
-            {isSaved ? "★ Saved" : "☆ Save"}
-          </button>
-        )}
-
-        {onRemove && (
+        {onRemove ? (
           <button
             className="remove-btn"
             onClick={() => onRemove(job)}
           >
             🗑 Remove
           </button>
-        )}
+        ) : (
+          <button
+            className="save-btn"
+            onClick={() => onSave(job)}
+          >
+            {isSaved ? "★ Saved" : "☆ Save"}
+          </button>
+  )}
+
+
+        
       </div>
     </li>
   );
