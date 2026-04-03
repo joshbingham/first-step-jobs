@@ -485,7 +485,7 @@ export default function JobSearch() {
           💡 Tip: Add a postcode to see nearby jobs, or browse remote roles. Save jobs to track them later.
         </p>
       </div>
-      {view !== "saved" && (
+      {view && view !== "saved" && (
         <Banner
           loading={loading}
           text={
