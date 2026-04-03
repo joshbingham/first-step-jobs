@@ -35,19 +35,22 @@ export default function JobSearch() {
 
   // Save/Unsave jobs
   const toggleSaveJob = (job) => {
-    const exists = savedJobs.find(j => j.id === job.id);
+  const exists = savedJobs.find(j => j.id === job.id);
 
-    let updated;
+  let updated;
 
-    if (exists) {
-      updated = savedJobs.filter(j => j.id !== job.id);
-    } else {
-      updated = [...savedJobs, job];
-    }
+  if (exists) {
+    updated = savedJobs.filter(j => j.id !== job.id);
+  } else {
+    updated = [...savedJobs, {
+      ...job,
+      savedAt: Date.now() // optional but useful
+    }];
+  }
 
-    setSavedJobs(updated);
-    localStorage.setItem("savedJobs", JSON.stringify(updated));
-  };
+  setSavedJobs(updated);
+  localStorage.setItem("savedJobs", JSON.stringify(updated));
+};
 
   // Check if a job is saved
   const isSaved = (job) => {
@@ -600,6 +603,7 @@ export default function JobSearch() {
               <ul>
                 {sortedSavedJobs.map((job) => {
                   const match = getMatchDetails(job);
+                  const jobKey = String(job.id);
 
                   return (
                     <JobCard
@@ -608,7 +612,10 @@ export default function JobSearch() {
                       match={match}
                       onRemove={toggleSaveJob}
                       isSaved={isSaved(job)}
-                      showDistance={false}
+                      showDistance={true}
+                      onFetchCommute={() => fetchCommuteForJob(job)}
+                      commuteTime={commuteTimes[jobKey]}
+                      travelMode={travelMode}
                     />
                   );
                 })}
