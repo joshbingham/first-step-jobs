@@ -79,6 +79,9 @@ export default function JobSearch() {
     return savedJobs.some(j => j.id === job.id);
   };
 
+  const isValidFullPostcode =
+    /^[A-Z]{1,2}\d[A-Z\d]? ?\d[A-Z]{2}$/i.test(postcode.trim());
+
   const hasSearchFilters = keyword || salaryMin || salaryMax;
   const hasEnteredPostcode = postcode.trim().length > 0;
 
@@ -439,10 +442,12 @@ export default function JobSearch() {
         <button
           className={view === "local" ? "active" : ""}
           onClick={() => {
+            if (!isValidFullPostcode) return;
+
             setView("local");
             setSearchTrigger(prev => prev + 1);
           }}
-          disabled={!postcode.trim()}
+          disabled={!isValidFullPostcode}
         >
           📍 Local
         </button>
@@ -465,6 +470,8 @@ export default function JobSearch() {
             setSearchTrigger(prev => prev + 1);
           }}
         />
+
+        
 
         
         <div className="commute-controls">
@@ -490,9 +497,8 @@ export default function JobSearch() {
 
             if (valid || value.trim() === "") {
               setError("");
+              setSearchTrigger(prev => prev + 1); // 🔥 only trigger when valid
             }
-
-            setSearchTrigger(prev => prev + 1);
           }}
         />
 
@@ -544,16 +550,22 @@ export default function JobSearch() {
       </div>
 
       {!view && (
-        <div className="info-hint">
+        <div className={`info-hint ${postcode && !isValidFullPostcode ? "warning" : ""}`}>
           <p>
-            💡 Tip: Enter a postcode first, then click "Local" to show jobs near you.
+            {postcode && !isValidFullPostcode
+              ? "⚠️ Please enter a valid UK postcode (e.g. SW11 1AA)"
+              : "💡 Tip: Enter a postcode first, then click \"Local\" to show jobs near you."}
           </p>
         </div>
       )}
-      {view === "local" && !hasSearchFilters && (
-        <div className="info-hint">
-          <p>
-            💡 Tip: Add keywords and salary range to improve match accuracy.
+      {view === "local" && (
+  <div className={`info-hint ${postcode && !isValidFullPostcode ? "warning" : ""}`}>
+    <p>
+      {!isValidFullPostcode
+              ? "⚠️ Please enter a valid UK postcode (e.g. SW11 1AA)"
+              : !hasSearchFilters
+              ? "💡 Tip: Add keywords and salary range to improve match accuracy."
+              : ""}
           </p>
         </div>
       )}
