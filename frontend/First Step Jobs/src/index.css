@@ -1,38 +1,8 @@
-/* HARD RESET - REMOVE ALL DEFAULT STYLES */
-
 html, body, #root {
   height: 100%;
   margin: 0;
   padding: 0;
-
-  background: #050914;
-  color: #f9fafb;
-
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-}
-
-/* REMOVE ALL DEFAULT WHITE BACKGROUNDS */
-* {
-  box-sizing: border-box;
-}
-
-/* FORCE ROOT APP TO BE CLEAN */
-#root {
-  background: radial-gradient(circle at top, #0b1430, #050914);
-}
-
-/* REMOVE ANY DEFAULT WHITE BLOCKS */
-div, section, main, header, footer {
-  background: transparent;
-}
-
-/* TEXT SAFETY */
-p, h1, h2, h3, h4, span, li {
-  color: inherit;
-}
-
-/* LINKS CLEAN */
-a {
-  color: inherit;
-  text-decoration: none;
+  #root {
+    background: radial-gradient(circle at top, #243b6b, #121a2b);
+  }
 }
