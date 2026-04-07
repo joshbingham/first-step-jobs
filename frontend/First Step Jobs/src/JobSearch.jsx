@@ -3,14 +3,29 @@ import JobCard from "./JobCard";
 import Banner from "./Banner";
 
 export default function JobSearch() {
+
   const [localJobs, setLocalJobs] = useState([]);
   const [remoteJobs, setRemoteJobs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [sortBy, setSortBy] = useState("match"); 
   const [savedJobs, setSavedJobs] = useState(() => {
-    const stored = localStorage.getItem("savedJobs");
-    return stored ? JSON.parse(stored) : [];
+  const stored = localStorage.getItem("savedJobs");
+    if (!stored) return [];
+
+    try {
+      const parsed = JSON.parse(stored);
+
+      // 🧹 Migration safety:
+      // If old format was IDs → drop them safely (cannot reconstruct reliably)
+      if (Array.isArray(parsed) && typeof parsed[0] !== "object") {
+        return [];
+      }
+
+      return parsed;
+    } catch {
+      return [];
+    }
   });
   const [savedSortBy, setSavedSortBy] = useState("date"); 
   const [usedRadius, setUsedRadius] = useState(null);
@@ -20,6 +35,8 @@ export default function JobSearch() {
   const [commuteTimes, setCommuteTimes] = useState({});
   const [userLocation, setUserLocation] = useState(null);
   const [travelMode, setTravelMode] = useState("driving");
+  
+  
   
 
 
@@ -35,16 +52,14 @@ export default function JobSearch() {
 
   // Save/Unsave jobs
   const toggleSaveJob = (job) => {
-    const jobId = job.id;
-
-    const exists = savedJobs.includes(jobId);
+    const exists = savedJobs.some(j => j.id === job.id);
 
     let updated;
 
     if (exists) {
-      updated = savedJobs.filter(id => id !== jobId);
+      updated = savedJobs.filter(j => j.id !== job.id);
     } else {
-      updated = [...savedJobs, jobId];
+      updated = [...savedJobs, job]; // store full job
     }
 
     setSavedJobs(updated);
@@ -73,9 +88,16 @@ export default function JobSearch() {
 
   // Fetch commute time for a job
   const fetchCommuteForJob = async (job) => {
+    const jobKey = `${job.id}-${travelMode}`;
+
+    // 1. Return cached result immediately if it exists
+    if (commuteTimes[jobKey]) {
+      return commuteTimes[jobKey];
+    }
+
     try {
-      if (!job.latitude || !job.longitude) return;
-      if (!userLocation?.lat || !userLocation?.lon) return;
+      if (!job.latitude || !job.longitude) return null;
+      if (!userLocation?.lat || !userLocation?.lon) return null;
 
       const res = await fetch(
         `http://localhost:5000/commute?originLat=${userLocation.lat}&originLon=${userLocation.lon}&destLat=${job.latitude}&destLon=${job.longitude}&mode=${travelMode}`
@@ -83,12 +105,16 @@ export default function JobSearch() {
 
       const data = await res.json();
 
+      // 2. Save to cache state
       setCommuteTimes((prev) => ({
         ...prev,
-        [String(job.id)]: data,
+        [jobKey]: data,
       }));
+
+      return data;
     } catch (err) {
       console.error("Commute fetch failed:", err);
+      return null;
     }
   };
   
@@ -104,10 +130,9 @@ export default function JobSearch() {
   // ----------------------------
   const loadJobs = async () => {
     setLoading(true);
-    setError("");
-    
-
-    try {
+    setError("")
+  
+  try {
       const trimmedPostcode = postcode.trim();
 
       const isValidPostcode =
@@ -118,22 +143,12 @@ export default function JobSearch() {
         trimmedPostcode.length > 0 &&
         isValidPostcode;
 
-      const isRemote = view === "remote";
-
-      // validate postcode only when user is trying local search
-      if (trimmedPostcode && !isValidPostcode) {
-        setError("Please enter a valid postcode (e.g. SW11 1AA)");
-        setLoading(false);
-        return;
-      }
-
       const params = new URLSearchParams();
 
       if (keyword) params.append("what", keyword);
       if (salaryMin) params.append("salary_min", salaryMin);
       if (salaryMax) params.append("salary_max", salaryMax);
 
-      // ONLY attach location if local search
       if (isLocal) {
         params.append("location", trimmedPostcode);
         params.append("distance", radius);
@@ -145,14 +160,19 @@ export default function JobSearch() {
 
       const data = await res.json();
 
+      // ✅ NOW data exists — safe to use
+      const allJobs = [
+        ...(data.localJobs || []),
+        ...(data.remoteJobs || [])
+      ];
+
+      
+
       setLocalJobs(data.localJobs || []);
       setRemoteJobs(data.remoteJobs || []);
       setHasLoadedRemote(true);
       setUsedRadius(data.usedRadius || radius);
       setUserLocation(data.userLocation);
-
-      
-
       setHasSearched(true);
 
     } catch (err) {
@@ -164,6 +184,7 @@ export default function JobSearch() {
     setLoading(false);
   };
 
+    
   const getMatchDetails = (job) => {
     let score = 30;
     const reasons = [];
@@ -208,7 +229,7 @@ export default function JobSearch() {
   }
 
     // 3. Distance
-    if (view === "local" && job.distance && radius) {
+    if ((view === "local" || view === "saved") && job.distance && radius) {
       const ratio = job.distance / radius;
 
       if (ratio <= 0.5) {
@@ -310,16 +331,23 @@ export default function JobSearch() {
   });
 
   const sortedSavedJobs = [...savedJobs].sort((a, b) => {
+    if (savedSortBy === "date") {
+      return new Date(b.created || 0) - new Date(a.created || 0);
+    }
+
     if (savedSortBy === "distance") {
       return (a.distance ?? Infinity) - (b.distance ?? Infinity);
     }
 
-    // default: newest first
-    return new Date(b.created || 0) - new Date(a.created || 0);
+    // fallback: match score
+    return getMatchDetails(b).score - getMatchDetails(a).score;
   });
 
+  
+  
+
   useEffect(() => {
-    if (!view || view === "saved") return;
+    if (!view) return;
 
     const delay = setTimeout(() => {
       loadJobs();
@@ -328,6 +356,8 @@ export default function JobSearch() {
     return () => clearTimeout(delay);
   }, [searchTrigger]);
 
+  
+
   useEffect(() => {
     if (!localJobs.length || !userLocation) return;
 
@@ -335,6 +365,35 @@ export default function JobSearch() {
       fetchCommuteForJob(job);
     });
   }, [localJobs, userLocation, travelMode]);
+
+  useEffect(() => {
+    console.log("SAVED EFFECT TRIGGERED");
+    console.log("view:", view);
+    console.log("savedJobs:", savedJobs);
+    console.log("userLocation:", userLocation);
+    if (view !== "saved") return;
+    if (!savedJobs.length || !userLocation) return;
+
+    savedJobs.forEach((job) => {
+      fetchCommuteForJob(job);
+    });
+  }, [view, savedJobs, userLocation, travelMode]);
+
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setUserLocation({
+          lat: pos.coords.latitude,
+          lon: pos.coords.longitude,
+        });
+      },
+      (err) => {
+        console.warn("Geolocation failed:", err);
+      }
+    );
+  }, []);
 
   const buildSearchSummary = () => {
     const parts = [];
@@ -528,7 +587,7 @@ export default function JobSearch() {
 
               <ul>
                 {sortedLocalJobs.map((job) => {
-                  const jobKey = String(job.id);
+                  const jobKey = `${job.id}-${travelMode}`;
                   const match = getMatchDetails(job);
                   
                   console.log("JOB CARD RENDER:", job.id, commuteTimes[job.id]);
@@ -599,17 +658,20 @@ export default function JobSearch() {
                   </select>
                 </div>
               )}
+              {console.log("RENDERING SAVED VIEW")}
+              {console.log("savedJobs length:", savedJobs.length)}
               <ul>
                 {sortedSavedJobs.map((job) => {
                   const match = getMatchDetails(job);
-                  const jobKey = String(job.id);
+                  const jobKey = `${job.id}-${travelMode}`;
 
                   return (
                     <JobCard
-                      key={job.id || `remotive-${job.redirect_url}`}
+                      key={job.id}
                       job={job}
                       match={match}
                       onRemove={toggleSaveJob}
+                      isSaved={true}
                       showDistance={true}
                       onFetchCommute={() => fetchCommuteForJob(job)}
                       commuteTime={commuteTimes[jobKey]}
