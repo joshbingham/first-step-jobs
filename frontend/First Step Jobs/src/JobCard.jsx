@@ -34,7 +34,7 @@ export default function JobCard({
 
       <div className="match-score">
         <div className="match-percent">
-          ⭐ {match.score}% Match
+          ⭐ {match?.score ?? 0}% Match
         </div>
 
         <div className="match-bar">
@@ -46,7 +46,7 @@ export default function JobCard({
       </div>
 
       <ul className="match-reasons">
-        {match.reasons.map((reason, i) => {
+        {(match.reasons ?? []).map((reason, i) => {
           const bad =
             reason.includes("Far") || reason.includes("Outside");
 

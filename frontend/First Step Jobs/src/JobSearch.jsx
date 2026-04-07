@@ -26,8 +26,7 @@ export default function JobSearch() {
     } catch {
       return [];
     }
-  });
-  const [savedSortBy, setSavedSortBy] = useState("date"); 
+  }); 
   const [usedRadius, setUsedRadius] = useState(null);
   const [hasLoadedRemote, setHasLoadedRemote] = useState(false);
   const [searchTrigger, setSearchTrigger] = useState(0);
@@ -59,7 +58,16 @@ export default function JobSearch() {
     if (exists) {
       updated = savedJobs.filter(j => j.id !== job.id);
     } else {
-      updated = [...savedJobs, job]; // store full job
+      const matchAtSave = getMatchDetails(job);
+      updated = [
+        ...savedJobs,
+        {
+          ...job,
+          savedMatch: matchAtSave.score,
+          savedReasons: matchAtSave.reasons,
+          savedAt: Date.now()
+        }
+      ];
     }
 
     setSavedJobs(updated);
@@ -70,6 +78,9 @@ export default function JobSearch() {
   const isSaved = (job) => {
     return savedJobs.some(j => j.id === job.id);
   };
+
+  const hasSearchFilters = keyword || salaryMin || salaryMax;
+  const hasEnteredPostcode = postcode.trim().length > 0;
 
   // Test commute
   const testCommute = async () => {
@@ -331,16 +342,7 @@ export default function JobSearch() {
   });
 
   const sortedSavedJobs = [...savedJobs].sort((a, b) => {
-    if (savedSortBy === "date") {
-      return new Date(b.created || 0) - new Date(a.created || 0);
-    }
-
-    if (savedSortBy === "distance") {
-      return (a.distance ?? Infinity) - (b.distance ?? Infinity);
-    }
-
-    // fallback: match score
-    return getMatchDetails(b).score - getMatchDetails(a).score;
+    return (b.savedMatch ?? 0) - (a.savedMatch ?? 0);
   });
 
   
@@ -541,11 +543,20 @@ export default function JobSearch() {
       
       </div>
 
-      <div className="info-hint">
-        <p>
-          💡 Tip: Add a postcode to see nearby jobs, or browse remote roles. Save jobs to track them later.
-        </p>
-      </div>
+      {!view && (
+        <div className="info-hint">
+          <p>
+            💡 Tip: Enter a postcode first, then click "Local" to show jobs near you.
+          </p>
+        </div>
+      )}
+      {view === "local" && !hasSearchFilters && (
+        <div className="info-hint">
+          <p>
+            💡 Tip: Add keywords and salary range to improve match accuracy.
+          </p>
+        </div>
+      )}
       {view && view !== "saved" && (
         <Banner
           loading={loading}
@@ -644,25 +655,15 @@ export default function JobSearch() {
               <h2>Saved Jobs</h2>
 
               {savedJobs.length === 0 && <p>No saved jobs yet.</p>}
-              {view === "saved" && savedJobs.length > 0 && (
-                <div style={{ marginBottom: "16px", textAlign: "center" }}>
-                  <label style={{ marginRight: "8px" }}>Sort saved jobs:</label>
-
-                  <select
-                    value={savedSortBy}
-                    onChange={(e) => setSavedSortBy(e.target.value)}
-                  >
-                    <option value="match">Best match</option>
-                    <option value="date">Newest first</option>
-                    <option value="distance">Closest first</option>
-                  </select>
-                </div>
-              )}
+              
               {console.log("RENDERING SAVED VIEW")}
               {console.log("savedJobs length:", savedJobs.length)}
               <ul>
                 {sortedSavedJobs.map((job) => {
-                  const match = getMatchDetails(job);
+                  const match = {
+                    score: job.savedMatch,
+                    reasons: job.savedReasons
+                  };
                   const jobKey = `${job.id}-${travelMode}`;
 
                   return (
