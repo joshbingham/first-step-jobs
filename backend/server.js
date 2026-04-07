@@ -10,7 +10,15 @@ dotenv.config();
 const app = express();
 app.use(cors());
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 8080;
+
+app.get("/", (req, res) => {
+  res.json({
+    status: "ok",
+    message: "Job API is running 🚀",
+    endpoints: ["/jobs", "/commute", "/test-commute"]
+  });
+});
 
 /* =========================
    JOBS ENDPOINT (CLEAN)
@@ -46,24 +54,35 @@ app.get("/jobs", async (req, res) => {
     /* =========================
        1. ADZUNA
     ========================== */
-    const response = await axios.get(
-      "https://api.adzuna.com/v1/api/jobs/gb/search/1",
-      {
-        params: {
-          app_id: process.env.ADZUNA_APP_ID,
-          app_key: process.env.ADZUNA_APP_KEY,
-          what: what || "",
-          where: location || "",
-          distance: radiusMiles,
-          results_per_page: 50,
-        },
-      }
-    );
+    let adzunaJobs = [];
 
-    let adzunaJobs = response.data.results.map((job) => ({
-      ...job,
-      source: "adzuna",
-    }));
+    try {
+      const isPostcode = location && /^[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}$/i.test(location);
+
+      const response = await axios.get(
+        "https://api.adzuna.com/v1/api/jobs/gb/search/1",
+        {
+          params: {
+            app_id: process.env.ADZUNA_APP_ID,
+            app_key: process.env.ADZUNA_APP_KEY,
+            what: what || "",
+            where: isPostcode ? location : "",
+            distance: radiusMiles,
+            results_per_page: 50,
+          },
+        }
+      );
+
+      adzunaJobs = response.data.results.map((job) => ({
+        ...job,
+        source: "adzuna",
+      }));
+
+      console.log("✅ Adzuna success");
+    } catch (err) {
+      console.log("❌ Adzuna FAILED:");
+      console.log(err.response?.data || err.message);
+    }
 
     
 
@@ -180,8 +199,11 @@ app.get("/jobs", async (req, res) => {
       },
     });
   } catch (err) {
-    console.error("❌ /jobs error:", err.message);
-    res.status(500).json({ error: "Failed to fetch jobs" });
+    console.error("❌ FULL ERROR:", err);
+    res.status(500).json({
+      error: "Failed to fetch jobs",
+      details: err.message,
+    });
   }
 });
 
