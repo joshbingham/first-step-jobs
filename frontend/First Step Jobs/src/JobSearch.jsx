@@ -90,7 +90,7 @@ export default function JobSearch() {
   const testCommute = async () => {
     try {
       const res = await fetch(
-        "http://localhost:5000/commute?originLat=51.5074&originLon=-0.1278&destLat=51.5171&destLon=-0.1062"
+        `${API_BASE}/commute?originLat=51.5074&originLon=-0.1278&destLat=51.5171&destLon=-0.1062`
       );
 
       const data = await res.json();
@@ -115,7 +115,7 @@ export default function JobSearch() {
       if (!userLocation?.lat || !userLocation?.lon) return null;
 
       const res = await fetch(
-        `http://localhost:5000/commute?originLat=${userLocation.lat}&originLon=${userLocation.lon}&destLat=${job.latitude}&destLon=${job.longitude}&mode=${travelMode}`
+        `${API_BASE}/commute?originLat=${userLocation.lat}&originLon=${userLocation.lon}&destLat=${job.latitude}&destLon=${job.longitude}&mode=${travelMode}`
       );
 
       const data = await res.json();
@@ -170,7 +170,7 @@ export default function JobSearch() {
       }
 
       const res = await fetch(
-        `http://localhost:5000/jobs?${params.toString()}`
+        `${API_BASE}/jobs?${params.toString()}`
       );
 
       const data = await res.json();
