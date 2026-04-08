@@ -424,6 +424,13 @@ export default function JobSearch() {
   };
 
   console.log("COMMUTE STATE SNAPSHOT:", commuteTimes);
+
+  const localHintMessage =
+  !isValidFullPostcode
+    ? "⚠️ Please enter a valid UK postcode (e.g. SW11 1AA)"
+    : !hasSearchFilters
+    ? "💡 Tip: Add keywords and salary range to improve match accuracy."
+    : "";
   
 
   return (
@@ -560,15 +567,9 @@ export default function JobSearch() {
           </p>
         </div>
       )}
-      {view === "local" && (
-  <div className={`info-hint ${postcode && !isValidFullPostcode ? "warning" : ""}`}>
-    <p>
-      {!isValidFullPostcode
-              ? "⚠️ Please enter a valid UK postcode (e.g. SW11 1AA)"
-              : !hasSearchFilters
-              ? "💡 Tip: Add keywords and salary range to improve match accuracy."
-              : ""}
-          </p>
+      {view === "local" && localHintMessage && (
+        <div className={`info-hint ${!isValidFullPostcode ? "warning" : ""}`}>
+          <p>{localHintMessage}</p>
         </div>
       )}
       {view && view !== "saved" && (
