@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import JobCard from "./JobCard";
 import Banner from "./Banner";
+import API_BASE from "./api";
 
 export default function JobSearch() {
 
