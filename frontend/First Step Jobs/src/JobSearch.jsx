@@ -169,9 +169,10 @@ export default function JobSearch() {
         params.append("distance", radius);
       }
 
-      const res = await fetch(
-        `${API_BASE}/jobs?${params.toString()}`
-      );
+      const url = `${API_BASE}/jobs?${params.toString()}`;
+      console.log("API CALL:", url);
+
+      const res = await fetch(url);
 
       const data = await res.json();
 
@@ -614,7 +615,7 @@ export default function JobSearch() {
                   const jobKey = `${job.id}-${travelMode}`;
                   const match = getMatchDetails(job);
                   
-                  console.log("JOB CARD RENDER:", job.id, commuteTimes[job.id]);
+                  console.log("JOB CARD RENDER:", job.id, commuteTimes[jobKey]);
                   
                   return (
                     <JobCard
