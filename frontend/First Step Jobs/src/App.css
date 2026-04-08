@@ -369,11 +369,6 @@ MATCH REASONS (NO BULLETS)
   gap: 6px;
 }
 
-.match-reasons li::before {
-  content: "•";
-  color: var(--accent);
-}
-
 /* =========================
 DETAILS
 ========================= */
