@@ -2,7 +2,10 @@
 export default function Banner({ loading, text }) {
   return (
     <div className={`banner ${loading ? "loading" : ""}`}>
-      <p>{loading ? `🔍 ${text}` : `🎯 ${text}`}</p>
+      <p>
+        {text}
+        {loading && <span className="spinner" />}
+      </p>
     </div>
   );
 }

@@ -243,6 +243,24 @@ INFO TEXT
 }
 
 /* =========================
+SPINNER 
+========================= */
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255,255,255,0.2);
+  border-top: 2px solid var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  display: inline-block;
+  margin-left: 8px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* =========================
 BANNER (LIGHTER + NARROW)
 ========================= */
 .banner {
