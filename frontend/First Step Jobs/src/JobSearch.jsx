@@ -484,7 +484,7 @@ export default function JobSearch() {
 
         
         <div className="commute-controls">
-          <label>Travel mode:</label>
+          <label title="Shows estimated commute time from your location to each job based on the selected mode of transport">Travel mode:</label>
           <select value={travelMode} onChange={(e) => setTravelMode(e.target.value)}>
             <option value="driving">🚗 Car</option>
             <option value="walking">🚶 Walk</option>
