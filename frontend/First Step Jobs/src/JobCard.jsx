@@ -33,7 +33,7 @@ export default function JobCard({
       </a>
 
       <div className="match-score">
-        <div className="match-percent">
+        <div className="match-percent" title="Calculated based on keyword relevance, salary match, distance, and how recently the job was posted">
           ⭐ {match?.score ?? 0}% Match
         </div>
 
