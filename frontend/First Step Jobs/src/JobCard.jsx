@@ -60,7 +60,17 @@ export default function JobCard({
 
       <div className="job-details">
         <p>
-          💰 £{job.salary_min ?? "N/A"} - £{job.salary_max ?? "N/A"}
+          💰 {
+            job.salary_min && job.salary_max
+              ? job.salary_min === job.salary_max
+                ? `£${job.salary_min}`
+                : `£${job.salary_min} - £${job.salary_max}`
+              : job.salary_min
+              ? `£${job.salary_min}`
+              : job.salary_max
+              ? `£${job.salary_max}`
+              : "N/A"
+          }
         </p>
 
         {showDistance && job.distance && (
