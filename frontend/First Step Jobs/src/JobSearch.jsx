@@ -529,7 +529,13 @@ export default function JobSearch() {
         <select
           value={salaryMin}
           onChange={(e) => {
-            setSalaryMin(e.target.value);
+            const value = Number(e.target.value);
+            setSalaryMin(value);
+
+            if (salaryMax && value > salaryMax) {
+              setSalaryMax(value); // auto-fix
+            }
+
             setSearchTrigger(prev => prev + 1);
           }}
         >
@@ -544,7 +550,13 @@ export default function JobSearch() {
         <select
           value={salaryMax}
           onChange={(e) => {
-            setSalaryMax(e.target.value);
+            const value = Number(e.target.value);
+            setSalaryMax(value);
+
+            if (salaryMin && value < salaryMin) {
+              setSalaryMin(value); // auto-fix
+            }
+
             setSearchTrigger(prev => prev + 1);
           }}
         >
