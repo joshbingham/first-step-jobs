@@ -347,7 +347,19 @@ export default function JobSearch() {
   });
 
   const sortedSavedJobs = [...savedJobs].sort((a, b) => {
-    return (b.savedMatch ?? 0) - (a.savedMatch ?? 0);
+    if (sortBy === "match") {
+      return (b.savedMatch ?? 0) - (a.savedMatch ?? 0);
+    }
+
+    if (sortBy === "date") {
+      return new Date(b.created || 0) - new Date(a.created || 0);
+    }
+
+    if (sortBy === "distance") {
+      return (a.distance ?? Infinity) - (b.distance ?? Infinity);
+    }
+
+    return 0;
   });
 
   
@@ -566,6 +578,17 @@ export default function JobSearch() {
           <option value="50000">£50,000</option>
           <option value="70000">£70,000</option>
           <option value="100000">£100,000</option>
+        </select>
+
+        <select
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value)}
+        >
+          <option value="match">Sort by Match</option>
+          <option value="date">Sort by Date</option>
+          {view === "local" && (
+            <option value="distance">Sort by Distance</option>
+          )}
         </select>
       
       </div>
