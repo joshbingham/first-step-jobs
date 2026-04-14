@@ -449,6 +449,8 @@ export default function JobSearch() {
     <div>
       <h1 className="page-title">First Step Jobs</h1>
 
+      
+
       <div className="view-tabs">
         <button
           className={view === "remote" ? "active" : ""}
@@ -605,6 +607,27 @@ export default function JobSearch() {
       {view === "local" && localHintMessage && (
         <div className={`info-hint ${!isValidFullPostcode ? "warning" : ""}`}>
           <p>{localHintMessage}</p>
+        </div>
+      )}
+      {!hasSearched && view !== "saved" && (
+        <div className="feature-intro">
+          <h2>Find jobs smarter</h2>
+          <div className="feature-grid">
+            <div className="feature-card">
+              <h3>⭐ Match Score</h3>
+              <p>See how well each job fits based on keywords, salary, distance, and recency.</p>
+            </div>
+
+            <div className="feature-card">
+              <h3>🚗 Commute Time</h3>
+              <p>Instantly view travel time by car, bike, walking, or public transport.</p>
+            </div>
+
+            <div className="feature-card">
+              <h3>🌍 Aggregated Jobs</h3>
+              <p>Search across multiple job sources in one place with unified results.</p>
+            </div>
+          </div>
         </div>
       )}
       {view && view !== "saved" && (
