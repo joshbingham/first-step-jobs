@@ -646,7 +646,7 @@ export default function JobSearch() {
                 <p>No local jobs found.</p>
               )}
 
-              <ul>
+              <ul className="job-grid">
                 {sortedLocalJobs.map((job) => {
                   const jobKey = `${job.id}-${travelMode}`;
                   const match = getMatchDetails(job);
@@ -681,7 +681,7 @@ export default function JobSearch() {
                 <p>No remote jobs found.</p>
               )}
 
-              <ul>
+              <ul className="job-grid">
                 {sortedRemoteJobs.map((job) => {
 
                   const match = getMatchDetails(job);
@@ -708,7 +708,7 @@ export default function JobSearch() {
               
               {console.log("RENDERING SAVED VIEW")}
               {console.log("savedJobs length:", savedJobs.length)}
-              <ul>
+              <ul className="job-grid">
                 {sortedSavedJobs.map((job) => {
                   const match = {
                     score: job.savedMatch,

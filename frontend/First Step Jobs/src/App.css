@@ -289,6 +289,9 @@ BANNER (LIGHTER + NARROW)
 JOB CARD (LIGHTER + CLEANER)
 ========================= */
 .job-card {
+  height: 100%;
+  display:flex;
+  flex-direction: column;
   background: var(--card);
 
   border: 1px solid var(--border);
@@ -309,6 +312,35 @@ JOB CARD (LIGHTER + CLEANER)
   border-color: var(--accent);
 }
 
+/* =========================
+JOB GRID   
+========================= */
+.job-grid {
+  display: grid;
+  gap: 16px;
+  padding: 0;
+}
+
+/* Tablet */
+@media (min-width: 768px) {
+  .job-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Desktop */
+@media (min-width: 1100px) {
+  .job-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Large screens */
+@media (min-width: 1400px) {
+  .job-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
 /* =========================
 JOB HEADER
 ========================= */
@@ -336,19 +368,23 @@ JOB HEADER
 MATCH SCORE
 ========================= */
 .match-score {
-  display: inline-block;
+  display: inline-flex;
+  flex-direction: column;   /* 🔥 stack text + bar */
+  align-items: flex-start; /* keeps it left aligned */
+
   margin-top: 10px;
 
-  padding: 6px 12px;
-  border-radius: 999px;
+  padding: 6px 10px;       /* slightly tighter */
+  border-radius: 10px;     /* less pill = cleaner */
 
   font-size: var(--text-xs);
   font-weight: 700;
 
   color: var(--accent);
   background: rgba(34, 211, 238, 0.08);
-
   border: 1px solid rgba(34, 211, 238, 0.25);
+
+  width: fit-content;
 }
 
 /* =========================
