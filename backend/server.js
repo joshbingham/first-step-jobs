@@ -25,22 +25,19 @@ app.get("/", (req, res) => {
 ========================= */
 app.get("/jobs", async (req, res) => {
   console.log("🔥 /jobs route hit");
-
-  const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 8;
+  console.log("QUERY PARAMS:", req.query);
 
   try {
-    const { what, location, distance, salary_min, salary_max } = req.query;
+    const { what, location, distance, salary_min, salary_max, page } = req.query;
 
     const radiusMiles = Number(distance) || 10;
-    const MIN_RESULTS = 10;
 
     let userLat = null;
     let userLon = null;
 
-    /* =========================
-       POSTCODE → LAT/LON
-    ========================== */
+    // -------------------------
+    // POSTCODE → LAT/LON
+    // -------------------------
     if (location) {
       try {
         const geoRes = await axios.get(
@@ -49,18 +46,22 @@ app.get("/jobs", async (req, res) => {
 
         userLat = geoRes.data.result.latitude;
         userLon = geoRes.data.result.longitude;
-      } catch (err) {
+
+        console.log("📍 USER COORDS:", userLat, userLon);
+      } catch {
         console.log("⚠️ Invalid postcode");
       }
     }
 
-    /* =========================
-       1. ADZUNA
-    ========================== */
+    // -------------------------
+    // ADZUNA
+    // -------------------------
     let adzunaJobs = [];
 
     try {
-      const isPostcode = location && /^[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}$/i.test(location);
+      const isPostcode =
+        location &&
+        /^[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}$/i.test(location);
 
       const response = await axios.get(
         "https://api.adzuna.com/v1/api/jobs/gb/search/1",
@@ -76,35 +77,28 @@ app.get("/jobs", async (req, res) => {
         }
       );
 
-      adzunaJobs = response.data.results.map((job) => ({
-        ...job,
-        source: "adzuna",
+      adzunaJobs = response.data.results.map(j => ({
+        ...j,
+        source: "adzuna"
       }));
 
-      console.log("✅ Adzuna success");
+      console.log("✅ Adzuna:", adzunaJobs.length);
     } catch (err) {
-      console.log("❌ Adzuna FAILED:");
-      console.log(err.response?.data || err.message);
+      console.log("❌ Adzuna failed");
     }
 
-    
-
-    /* =========================
-       2. REMOTIVE
-    ========================== */
+    // -------------------------
+    // REMOTIVE
+    // -------------------------
     const remotiveRes = await axios.get(
       "https://remotive.com/api/remote-jobs",
-      {
-        params: { search: what || "" },
-      }
+      { params: { search: what || "" } }
     );
 
-    const remotiveJobs = remotiveRes.data.jobs.map((job) => ({
+    const remotiveJobs = remotiveRes.data.jobs.map(job => ({
       title: job.title,
       company: { display_name: job.company_name },
       location: { display_name: job.candidate_required_location },
-      salary_min: null,
-      salary_max: null,
       redirect_url: job.url,
       latitude: null,
       longitude: null,
@@ -112,9 +106,9 @@ app.get("/jobs", async (req, res) => {
       created: job.publication_date,
     }));
 
-    /* =========================
-       3. ARBEITNOW
-    ========================== */
+    // -------------------------
+    // ARBEITNOW
+    // -------------------------
     let arbeitnowJobs = [];
 
     try {
@@ -122,12 +116,10 @@ app.get("/jobs", async (req, res) => {
         "https://www.arbeitnow.com/api/job-board-api"
       );
 
-      arbeitnowJobs = arbeitRes.data.data.map((job) => ({
+      arbeitnowJobs = arbeitRes.data.data.map(job => ({
         title: job.title,
         company: { display_name: job.company_name || "Unknown" },
         location: { display_name: job.location || "Remote" },
-        salary_min: null,
-        salary_max: null,
         redirect_url: job.url,
         latitude: null,
         longitude: null,
@@ -135,108 +127,82 @@ app.get("/jobs", async (req, res) => {
         isRemote: job.remote ?? true,
         created: job.created_at,
       }));
-    } catch (err) {
-      console.log("⚠️ Arbeitnow failed");
-    }
+    } catch {}
 
-    /* =========================
-       MERGE + DEDUPE
-    ========================== */
+    // -------------------------
+    // MERGE
+    // -------------------------
     let jobs = [...adzunaJobs, ...remotiveJobs, ...arbeitnowJobs];
 
     jobs = Array.from(
       new Map(
-        jobs.map((job) => [
+        jobs.map(job => [
           `${job.title}-${job.company?.display_name}-${job.location?.display_name}`,
-          job,
+          job
         ])
       ).values()
     );
 
-    console.log("SAMPLE JOB:", jobs[0]);
+    console.log("📦 MERGED JOBS:", jobs.length);
 
-    /* =========================
-       DISTANCE ONLY (NO COMMUTE HERE)
-    ========================== */
+    // -------------------------
+    // DISTANCE
+    // -------------------------
     if (userLat && userLon) {
-      jobs = jobs.map((job) => {
+      jobs = jobs.map(job => {
         if (!job.latitude || !job.longitude) return job;
-
-        const distanceKm = getDistance(
-          userLat,
-          userLon,
-          job.latitude,
-          job.longitude
-        );
 
         return {
           ...job,
-          distance: distanceKm,
-          hasCoords: true,
+          distance: getDistance(userLat, userLon, job.latitude, job.longitude),
         };
       });
     }
 
-    /* =========================
-       SPLIT RESULTS
-    ========================== */
+    // -------------------------
+    // SPLIT
+    // -------------------------
     const localJobs = jobs
-      .filter((job) => job.latitude && job.longitude)
+      .filter(j => j.latitude && j.longitude)
       .sort((a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity));
 
     const remoteJobs = jobs.filter(
-      (job) =>
-        job.source === "remotive" ||
-        job.isRemote ||
-        !job.latitude ||
-        !job.longitude
+      j => j.source === "remotive" || j.isRemote || !j.latitude
     );
 
-    // =========================
-    // PAGINATION
-    // =========================
-    const start = (page - 1) * limit;
+    console.log("🏠 LOCAL JOBS:", localJobs.length);
+    console.log("🌍 REMOTE JOBS:", remoteJobs.length);
 
-    const paginatedLocalJobs = localJobs.slice(start, start + limit);
-    const paginatedRemoteJobs = remoteJobs.slice(start, start + limit);
+    // -------------------------
+    // PAGINATION (FIXED)
+    // -------------------------
+    const pageNum = Number(page) || 1;
+    const limit = 8;
+
+    const start = (pageNum - 1) * limit;
+    const end = start + limit;
+
+    const paginatedLocalJobs = localJobs.slice(start, end);
+    const paginatedRemoteJobs = remoteJobs.slice(start, end);
 
     const totalLocalPages = Math.ceil(localJobs.length / limit);
     const totalRemotePages = Math.ceil(remoteJobs.length / limit);
 
-    res.json({
+    // -------------------------
+    // IMPORTANT: SEND RESPONSE
+    // -------------------------
+    console.log("📤 SENDING RESPONSE");
+    return res.json({
       localJobs: paginatedLocalJobs,
       remoteJobs: paginatedRemoteJobs,
-
       totalLocalPages,
       totalRemotePages,
-
       usedRadius: radiusMiles,
-      userLocation: {
-        lat: userLat,
-        lon: userLon,
-      },
     });
   } catch (err) {
     console.error("❌ FULL ERROR:", err);
-    res.status(500).json({
-      error: "Failed to fetch jobs",
-      details: err.message,
-    });
+    res.status(500).json({ error: "Failed to fetch jobs" });
   }
-});
-
-/* =========================
-   TEST COMMUTE ENDPOINT
-========================= */
-app.get("/test-commute", async (req, res) => {
-  const result = await getCommuteTime(
-    51.5074,
-    -0.1278,
-    51.5171,
-    -0.1062
-  );
-
-  res.json(result);
 });
 
 app.get("/commute", async (req, res) => {
@@ -261,6 +227,11 @@ app.get("/commute", async (req, res) => {
     console.error("Commute error:", err.message);
     res.status(500).json({ error: "Failed to calculate commute" });
   }
+
+  return res.json({
+    localJobs,
+    remoteJobs
+  });
 });
 
 /* =========================

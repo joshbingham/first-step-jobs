@@ -148,7 +148,7 @@ export default function JobSearch() {
     /^[A-Z]{1,2}\d[A-Z\d]? ?\d[A-Z]{2}$/i.test(postcode.trim());
 
   const paginateSavedJobs = (jobs) => {
-    const start = (currentPage - 1) * jobsPerPage;
+    const start = (savedPage - 1) * jobsPerPage;
     return jobs.slice(start, start + jobsPerPage);
   };
 
@@ -201,6 +201,7 @@ export default function JobSearch() {
 
       const data = await res.json();
 
+      console.log("📦 FULL API RESPONSE:", data);
       
 
       // ✅ NOW data exists — safe to use
@@ -217,6 +218,9 @@ export default function JobSearch() {
       setHasLoadedRemote(true);
       setUsedRadius(data.usedRadius || radius);
       setHasSearched(true);
+
+      console.log("LOCAL JOBS FROM API:", data.localJobs?.length);
+      console.log("REMOTE JOBS FROM API:", data.remoteJobs?.length);
 
     } catch (err) {
       console.error("Failed to load jobs:", err);
@@ -400,14 +404,14 @@ export default function JobSearch() {
     }, 500);
 
     return () => clearTimeout(delay);
-  }, [searchTrigger, localPage, remotePage]);
+  }, [searchTrigger, localPage, remotePage, savedPage]);
 
   
 
   useEffect(() => {
     if (!localJobs.length || !userLocation) return;
 
-    const visibleJobs = sortedLocalJobs.slice(0, jobsPerPage);
+    const visibleJobs = sortedLocalJobs;
 
     visibleJobs.forEach(job => {
       fetchCommuteForJob(job);
@@ -499,7 +503,7 @@ export default function JobSearch() {
             if (!isValidFullPostcode) return;
 
             setView("local");
-            setCurrentPage(1);
+            setLocalPage(1);
             setSearchTrigger(prev => prev + 1);
           }}
           disabled={!isValidFullPostcode}
@@ -706,6 +710,7 @@ export default function JobSearch() {
 
               <ul className="job-grid">
                 {sortedLocalJobs.map((job) => {
+                  console.log("RENDERING JOB:", job.title, job.latitude, job.longitude);
                   const jobKey = `${job.id}-${travelMode}`;
                   const match = getMatchDetails(job);
                   
@@ -729,23 +734,23 @@ export default function JobSearch() {
               </ul>
               <div className="pagination">
                 <button
-                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                  disabled={currentPage === 1}
+                  onClick={() => setLocalPage(prev => Math.max(prev - 1, 1))}
+                  disabled={localPage === 1}
                 >
                   ⬅ Prev
                 </button>
 
                 <span>
-                  Page {currentPage} of {totalLocalPages}
+                  Page {localPage} of {totalLocalPages}
                 </span>
 
                 <button
                   onClick={() =>
-                    setCurrentPage(prev =>
+                    setLocalPage(prev =>
                       Math.min(prev + 1, totalLocalPages)
                     )
                   }
-                  disabled={currentPage === totalLocalPages}
+                  disabled={localPage === totalLocalPages}
                 >
                   Next ➡
                 </button>
@@ -781,23 +786,23 @@ export default function JobSearch() {
               </ul>
               <div className="pagination">
                 <button
-                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                  disabled={currentPage === 1}
+                  onClick={() => setRemotePage(prev => Math.max(prev - 1, 1))}
+                  disabled={remotePage === 1}
                 >
                   ⬅ Prev
                 </button>
 
                 <span>
-                  Page {currentPage} of {totalRemotePages}
+                  Page {remotePage} of {totalRemotePages}
                 </span>
 
                 <button
                   onClick={() =>
-                    setCurrentPage(prev =>
+                    setRemotePage(prev =>
                       Math.min(prev + 1, totalRemotePages)
                     )
                   }
-                  disabled={currentPage === totalRemotePages}
+                  disabled={remotePage === totalRemotePages}
                 >
                   Next ➡
                 </button>
@@ -838,23 +843,23 @@ export default function JobSearch() {
               {savedJobs.length > jobsPerPage && (
                 <div className="pagination">
                   <button
-                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                    disabled={currentPage === 1}
+                    onClick={() => setSavedPage(prev => Math.max(prev - 1, 1))}
+                    disabled={savedPage === 1}
                   >
                     ⬅ Prev
                   </button>
 
                   <span>
-                    Page {currentPage} of {getTotalPages(sortedSavedJobs)}
+                    Page {savedPage} of {getTotalPages(sortedSavedJobs)}
                   </span>
 
                   <button
                     onClick={() =>
-                      setCurrentPage(prev =>
+                      setSavedPage(prev =>
                         Math.min(prev + 1, getTotalPages(sortedSavedJobs))
                       )
                     }
-                    disabled={currentPage === getTotalPages(sortedSavedJobs)}
+                    disabled={savedPage === getTotalPages(sortedSavedJobs)}
                   >
                     Next ➡
                   </button>
