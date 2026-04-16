@@ -35,6 +35,8 @@ export default function JobSearch() {
   const [commuteTimes, setCommuteTimes] = useState({});
   const [userLocation, setUserLocation] = useState(null);
   const [travelMode, setTravelMode] = useState("driving");
+  const [currentPage, setCurrentPage] = useState(1);
+  const jobsPerPage = 8;
   
   
   
@@ -140,12 +142,22 @@ export default function JobSearch() {
   const isValidPostcode =
     /^[A-Z]{1,2}\d[A-Z\d]? ?\d[A-Z]{2}$/i.test(postcode.trim());
 
+  const paginateJobs = (jobs) => {
+    const start = (currentPage - 1) * jobsPerPage;
+    return jobs.slice(start, start + jobsPerPage);
+  };
+
+  const getTotalPages = (jobs) => {
+    return Math.ceil(jobs.length / jobsPerPage);
+  };
+  
   // ----------------------------
   // MAIN API FUNCTION
   // ----------------------------
   const loadJobs = async () => {
     setLoading(true);
     setError("")
+    setCurrentPage(1);
   
   try {
       const trimmedPostcode = postcode.trim();
@@ -670,7 +682,7 @@ export default function JobSearch() {
               )}
 
               <ul className="job-grid">
-                {sortedLocalJobs.map((job) => {
+                {paginateJobs(sortedLocalJobs).map((job) => {
                   const jobKey = `${job.id}-${travelMode}`;
                   const match = getMatchDetails(job);
                   
@@ -692,6 +704,29 @@ export default function JobSearch() {
                 );
                 })}
               </ul>
+              <div className="pagination">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                >
+                  ⬅ Prev
+                </button>
+
+                <span>
+                  Page {currentPage} of {getTotalPages(sortedLocalJobs)}
+                </span>
+
+                <button
+                  onClick={() =>
+                    setCurrentPage(prev =>
+                      Math.min(prev + 1, getTotalPages(sortedLocalJobs))
+                    )
+                  }
+                  disabled={currentPage === getTotalPages(sortedLocalJobs)}
+                >
+                  Next ➡
+                </button>
+              </div>
             </>
           )}
 
@@ -705,7 +740,7 @@ export default function JobSearch() {
               )}
 
               <ul className="job-grid">
-                {sortedRemoteJobs.map((job) => {
+                {paginateJobs(sortedRemoteJobs).map((job) => {
 
                   const match = getMatchDetails(job);
                   
@@ -721,6 +756,29 @@ export default function JobSearch() {
                   );
                 })}
               </ul>
+              <div className="pagination">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                >
+                  ⬅ Prev
+                </button>
+
+                <span>
+                  Page {currentPage} of {getTotalPages(sortedRemoteJobs)}
+                </span>
+
+                <button
+                  onClick={() =>
+                    setCurrentPage(prev =>
+                      Math.min(prev + 1, getTotalPages(sortedRemoteJobs))
+                    )
+                  }
+                  disabled={currentPage === getTotalPages(sortedRemoteJobs)}
+                >
+                  Next ➡
+                </button>
+              </div>
             </>
           )}
           {view === "saved" && (
@@ -732,7 +790,7 @@ export default function JobSearch() {
               {console.log("RENDERING SAVED VIEW")}
               {console.log("savedJobs length:", savedJobs.length)}
               <ul className="job-grid">
-                {sortedSavedJobs.map((job) => {
+                {paginateJobs(sortedSavedJobs).map((job) => {
                   const match = {
                     score: job.savedMatch,
                     reasons: job.savedReasons
@@ -754,6 +812,31 @@ export default function JobSearch() {
                   );
                 })}
               </ul>
+              {savedJobs.length > jobsPerPage && (
+                <div className="pagination">
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                  >
+                    ⬅ Prev
+                  </button>
+
+                  <span>
+                    Page {currentPage} of {getTotalPages(sortedSavedJobs)}
+                  </span>
+
+                  <button
+                    onClick={() =>
+                      setCurrentPage(prev =>
+                        Math.min(prev + 1, getTotalPages(sortedSavedJobs))
+                      )
+                    }
+                    disabled={currentPage === getTotalPages(sortedSavedJobs)}
+                  >
+                    Next ➡
+                  </button>
+                </div>
+              )}
             </>
           )}
         </div>
