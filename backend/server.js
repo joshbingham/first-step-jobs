@@ -26,6 +26,9 @@ app.get("/", (req, res) => {
 app.get("/jobs", async (req, res) => {
   console.log("🔥 /jobs route hit");
 
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 8;
+
   try {
     const { what, location, distance, salary_min, salary_max } = req.query;
 
@@ -189,9 +192,24 @@ app.get("/jobs", async (req, res) => {
         !job.longitude
     );
 
+    // =========================
+    // PAGINATION
+    // =========================
+    const start = (page - 1) * limit;
+
+    const paginatedLocalJobs = localJobs.slice(start, start + limit);
+    const paginatedRemoteJobs = remoteJobs.slice(start, start + limit);
+
+    const totalLocalPages = Math.ceil(localJobs.length / limit);
+    const totalRemotePages = Math.ceil(remoteJobs.length / limit);
+
     res.json({
-      localJobs,
-      remoteJobs,
+      localJobs: paginatedLocalJobs,
+      remoteJobs: paginatedRemoteJobs,
+
+      totalLocalPages,
+      totalRemotePages,
+
       usedRadius: radiusMiles,
       userLocation: {
         lat: userLat,

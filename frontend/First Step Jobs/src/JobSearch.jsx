@@ -36,6 +36,11 @@ export default function JobSearch() {
   const [userLocation, setUserLocation] = useState(null);
   const [travelMode, setTravelMode] = useState("driving");
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalLocalPages, setTotalLocalPages] = useState(1);
+  const [totalRemotePages, setTotalRemotePages] = useState(1);
+  const [localPage, setLocalPage] = useState(1);
+  const [remotePage, setRemotePage] = useState(1);
+  const [savedPage, setSavedPage] = useState(1);
   const jobsPerPage = 8;
   
   
@@ -123,10 +128,10 @@ export default function JobSearch() {
       const data = await res.json();
 
       // 2. Save to cache state
-      setCommuteTimes((prev) => ({
-        ...prev,
-        [jobKey]: data,
-      }));
+      setCommuteTimes(prev => {
+        if (prev[jobKey]) return prev; // ignore stale overwrite
+        return { ...prev, [jobKey]: data };
+      });
 
       return data;
     } catch (err) {
@@ -142,7 +147,7 @@ export default function JobSearch() {
   const isValidPostcode =
     /^[A-Z]{1,2}\d[A-Z\d]? ?\d[A-Z]{2}$/i.test(postcode.trim());
 
-  const paginateJobs = (jobs) => {
+  const paginateSavedJobs = (jobs) => {
     const start = (currentPage - 1) * jobsPerPage;
     return jobs.slice(start, start + jobsPerPage);
   };
@@ -157,7 +162,8 @@ export default function JobSearch() {
   const loadJobs = async () => {
     setLoading(true);
     setError("")
-    setCurrentPage(1);
+    
+    
   
   try {
       const trimmedPostcode = postcode.trim();
@@ -171,6 +177,13 @@ export default function JobSearch() {
         isValidPostcode;
 
       const params = new URLSearchParams();
+
+      let page = 1;
+
+      if (view === "local") page = localPage;
+      if (view === "remote") page = remotePage;
+      // saved doesn't use API pagination (usually local-only)
+      params.append("page", page);
 
       if (keyword) params.append("what", keyword);
       if (salaryMin) params.append("salary_min", salaryMin);
@@ -188,6 +201,8 @@ export default function JobSearch() {
 
       const data = await res.json();
 
+      
+
       // ✅ NOW data exists — safe to use
       const allJobs = [
         ...(data.localJobs || []),
@@ -195,12 +210,12 @@ export default function JobSearch() {
       ];
 
       
-
+      setTotalLocalPages(data.totalLocalPages || 1);
+      setTotalRemotePages(data.totalRemotePages || 1);
       setLocalJobs(data.localJobs || []);
       setRemoteJobs(data.remoteJobs || []);
       setHasLoadedRemote(true);
       setUsedRadius(data.usedRadius || radius);
-      setUserLocation(data.userLocation);
       setHasSearched(true);
 
     } catch (err) {
@@ -385,14 +400,16 @@ export default function JobSearch() {
     }, 500);
 
     return () => clearTimeout(delay);
-  }, [searchTrigger]);
+  }, [searchTrigger, localPage, remotePage]);
 
   
 
   useEffect(() => {
     if (!localJobs.length || !userLocation) return;
 
-    localJobs.forEach((job) => {
+    const visibleJobs = sortedLocalJobs.slice(0, jobsPerPage);
+
+    visibleJobs.forEach(job => {
       fetchCommuteForJob(job);
     });
   }, [localJobs, userLocation, travelMode]);
@@ -425,6 +442,7 @@ export default function JobSearch() {
       }
     );
   }, []);
+
 
   const buildSearchSummary = () => {
     const parts = [];
@@ -468,6 +486,7 @@ export default function JobSearch() {
           className={view === "remote" ? "active" : ""}
           onClick={() => {
             setView("remote");
+            setCurrentPage(1);
             setSearchTrigger(prev => prev + 1);
           }}
         >
@@ -480,6 +499,7 @@ export default function JobSearch() {
             if (!isValidFullPostcode) return;
 
             setView("local");
+            setCurrentPage(1);
             setSearchTrigger(prev => prev + 1);
           }}
           disabled={!isValidFullPostcode}
@@ -489,7 +509,10 @@ export default function JobSearch() {
 
         <button
           className={view === "saved" ? "active" : ""}
-          onClick={() => setView("saved")}
+          onClick={() => {
+            setView("saved");
+            setCurrentPage(1);
+          }}
         >
           ⭐ Saved ({savedJobs.length})
         </button>
@@ -682,7 +705,7 @@ export default function JobSearch() {
               )}
 
               <ul className="job-grid">
-                {paginateJobs(sortedLocalJobs).map((job) => {
+                {sortedLocalJobs.map((job) => {
                   const jobKey = `${job.id}-${travelMode}`;
                   const match = getMatchDetails(job);
                   
@@ -713,16 +736,16 @@ export default function JobSearch() {
                 </button>
 
                 <span>
-                  Page {currentPage} of {getTotalPages(sortedLocalJobs)}
+                  Page {currentPage} of {totalLocalPages}
                 </span>
 
                 <button
                   onClick={() =>
                     setCurrentPage(prev =>
-                      Math.min(prev + 1, getTotalPages(sortedLocalJobs))
+                      Math.min(prev + 1, totalLocalPages)
                     )
                   }
-                  disabled={currentPage === getTotalPages(sortedLocalJobs)}
+                  disabled={currentPage === totalLocalPages}
                 >
                   Next ➡
                 </button>
@@ -740,7 +763,7 @@ export default function JobSearch() {
               )}
 
               <ul className="job-grid">
-                {paginateJobs(sortedRemoteJobs).map((job) => {
+                {sortedRemoteJobs.map((job) => {
 
                   const match = getMatchDetails(job);
                   
@@ -765,16 +788,16 @@ export default function JobSearch() {
                 </button>
 
                 <span>
-                  Page {currentPage} of {getTotalPages(sortedRemoteJobs)}
+                  Page {currentPage} of {totalRemotePages}
                 </span>
 
                 <button
                   onClick={() =>
                     setCurrentPage(prev =>
-                      Math.min(prev + 1, getTotalPages(sortedRemoteJobs))
+                      Math.min(prev + 1, totalRemotePages)
                     )
                   }
-                  disabled={currentPage === getTotalPages(sortedRemoteJobs)}
+                  disabled={currentPage === totalRemotePages}
                 >
                   Next ➡
                 </button>
@@ -790,7 +813,7 @@ export default function JobSearch() {
               {console.log("RENDERING SAVED VIEW")}
               {console.log("savedJobs length:", savedJobs.length)}
               <ul className="job-grid">
-                {paginateJobs(sortedSavedJobs).map((job) => {
+                {paginateSavedJobs(sortedSavedJobs).map((job) => {
                   const match = {
                     score: job.savedMatch,
                     reasons: job.savedReasons
