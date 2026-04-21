@@ -176,8 +176,8 @@ app.get("/jobs", async (req, res) => {
     // -------------------------
     // PAGINATION (FIXED)
     // -------------------------
-    const pageNum = Number(page) || 1;
     const limit = 8;
+    const pageNum = Number(page) || 1;
 
     const start = (pageNum - 1) * limit;
     const end = start + limit;
@@ -188,10 +188,14 @@ app.get("/jobs", async (req, res) => {
     const totalLocalPages = Math.ceil(localJobs.length / limit);
     const totalRemotePages = Math.ceil(remoteJobs.length / limit);
 
-    // -------------------------
-    // IMPORTANT: SEND RESPONSE
-    // -------------------------
-    console.log("📤 SENDING RESPONSE");
+    console.log("📤 FINAL RESPONSE CHECK:", {
+      localReturned: paginatedLocalJobs.length,
+      remoteReturned: paginatedRemoteJobs.length,
+      totalLocal: localJobs.length,
+      totalRemote: remoteJobs.length,
+      pageNum
+    });
+
     return res.json({
       localJobs: paginatedLocalJobs,
       remoteJobs: paginatedRemoteJobs,
@@ -227,11 +231,6 @@ app.get("/commute", async (req, res) => {
     console.error("Commute error:", err.message);
     res.status(500).json({ error: "Failed to calculate commute" });
   }
-
-  return res.json({
-    localJobs,
-    remoteJobs
-  });
 });
 
 /* =========================

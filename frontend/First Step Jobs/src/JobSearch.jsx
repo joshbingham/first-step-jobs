@@ -44,7 +44,6 @@ export default function JobSearch() {
   const jobsPerPage = 8;
   
   
-  
 
 
   // Inputs
@@ -160,12 +159,23 @@ export default function JobSearch() {
   // MAIN API FUNCTION
   // ----------------------------
   const loadJobs = async () => {
+    const requestId = Date.now();
+    loadJobs.latestRequest = requestId;
     setLoading(true);
     setError("")
     
     
   
   try {
+
+      console.log("📄 PAGE STATE:", {
+        view,
+        localPage,
+        remotePage,
+        keyword,
+        postcode: postcode.trim()
+      });
+
       const trimmedPostcode = postcode.trim();
 
       const isValidPostcode =
@@ -178,21 +188,19 @@ export default function JobSearch() {
 
       const params = new URLSearchParams();
 
-      let page = 1;
-
-      if (view === "local") page = localPage;
-      if (view === "remote") page = remotePage;
-      // saved doesn't use API pagination (usually local-only)
-      params.append("page", page);
+      params.append(
+        "page",
+        view === "local" ? localPage : remotePage
+      );
 
       if (keyword) params.append("what", keyword);
       if (salaryMin) params.append("salary_min", salaryMin);
       if (salaryMax) params.append("salary_max", salaryMax);
 
-      if (isLocal) {
-        params.append("location", trimmedPostcode);
-        params.append("distance", radius);
-      }
+      if (view === "local" && trimmedPostcode) {
+      params.append("location", trimmedPostcode);
+      params.append("distance", radius);
+    }
 
       const url = `${API_BASE}/jobs?${params.toString()}`;
       console.log("API CALL:", url);
@@ -201,7 +209,17 @@ export default function JobSearch() {
 
       const data = await res.json();
 
-      console.log("📦 FULL API RESPONSE:", data);
+      if (loadJobs.latestRequest !== requestId) {
+        console.log("⚠️ Ignoring stale response");
+        return;
+      }
+
+      
+      console.log("📥 API RESPONSE:", {
+        local: data.localJobs.length,
+        remote: data.remoteJobs.length,
+        totalLocalPages: data.totalLocalPages
+      });
       
 
       // ✅ NOW data exists — safe to use
@@ -214,13 +232,13 @@ export default function JobSearch() {
       setTotalLocalPages(data.totalLocalPages || 1);
       setTotalRemotePages(data.totalRemotePages || 1);
       setLocalJobs(data.localJobs || []);
+      console.log("🧠 SET localJobs:", data.localJobs?.length);
       setRemoteJobs(data.remoteJobs || []);
       setHasLoadedRemote(true);
       setUsedRadius(data.usedRadius || radius);
       setHasSearched(true);
 
-      console.log("LOCAL JOBS FROM API:", data.localJobs?.length);
-      console.log("REMOTE JOBS FROM API:", data.remoteJobs?.length);
+      
 
     } catch (err) {
       console.error("Failed to load jobs:", err);
@@ -397,14 +415,14 @@ export default function JobSearch() {
   
 
   useEffect(() => {
-    if (!view) return;
+  if (!view) return;
 
-    const delay = setTimeout(() => {
-      loadJobs();
-    }, 500);
+  const delay = setTimeout(() => {
+    loadJobs();
+  }, 300);
 
-    return () => clearTimeout(delay);
-  }, [searchTrigger, localPage, remotePage, savedPage]);
+  return () => clearTimeout(delay);
+}, [searchTrigger, localPage, remotePage]);
 
   
 
@@ -419,7 +437,7 @@ export default function JobSearch() {
   }, [localJobs, userLocation, travelMode]);
 
   useEffect(() => {
-    console.log("SAVED EFFECT TRIGGERED");
+    
     console.log("view:", view);
     console.log("savedJobs:", savedJobs);
     console.log("userLocation:", userLocation);
@@ -469,7 +487,7 @@ export default function JobSearch() {
     return parts.join(" • ");
   };
 
-  console.log("COMMUTE STATE SNAPSHOT:", commuteTimes);
+  
 
   const localHintMessage =
   !isValidFullPostcode
@@ -478,7 +496,8 @@ export default function JobSearch() {
     ? "💡 Tip: Add keywords and salary range to improve match accuracy."
     : "";
   
-
+  console.log("RENDER localJobs length:", localJobs.length);
+ 
   return (
     <div>
       <h1 className="page-title">First Step Jobs</h1>
@@ -709,12 +728,13 @@ export default function JobSearch() {
               )}
 
               <ul className="job-grid">
+                
                 {sortedLocalJobs.map((job) => {
-                  console.log("RENDERING JOB:", job.title, job.latitude, job.longitude);
+                  
                   const jobKey = `${job.id}-${travelMode}`;
                   const match = getMatchDetails(job);
                   
-                  console.log("JOB CARD RENDER:", job.id, commuteTimes[jobKey]);
+                  
                   
                   return (
                     <JobCard
@@ -816,7 +836,7 @@ export default function JobSearch() {
               {savedJobs.length === 0 && <p>No saved jobs yet.</p>}
               
               {console.log("RENDERING SAVED VIEW")}
-              {console.log("savedJobs length:", savedJobs.length)}
+              
               <ul className="job-grid">
                 {paginateSavedJobs(sortedSavedJobs).map((job) => {
                   const match = {
