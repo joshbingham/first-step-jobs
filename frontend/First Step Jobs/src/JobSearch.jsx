@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import JobCard from "./JobCard";
 import Banner from "./Banner";
 import API_BASE from "./api";
 
 export default function JobSearch() {
-
+  const latestRequestRef = useRef(0);
   const [localJobs, setLocalJobs] = useState([]);
   const [remoteJobs, setRemoteJobs] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -146,6 +146,7 @@ export default function JobSearch() {
   const isValidPostcode =
     /^[A-Z]{1,2}\d[A-Z\d]? ?\d[A-Z]{2}$/i.test(postcode.trim());
 
+
   const paginateSavedJobs = (jobs) => {
     const start = (savedPage - 1) * jobsPerPage;
     return jobs.slice(start, start + jobsPerPage);
@@ -163,7 +164,7 @@ export default function JobSearch() {
     setError("")
 
     const requestId = Date.now();
-    loadJobs.latestRequest = requestId;
+    latestRequestRef.current = requestId;
     
     
   
@@ -182,10 +183,7 @@ export default function JobSearch() {
       const isValidPostcode =
         /^[A-Z]{1,2}\d[A-Z\d]? ?\d[A-Z]{2}$/i.test(trimmedPostcode);
 
-      const isLocal =
-        view === "local" &&
-        trimmedPostcode.length > 0 &&
-        isValidPostcode;
+      
 
       const params = new URLSearchParams();
 
@@ -193,6 +191,8 @@ export default function JobSearch() {
         "page",
         view === "local" ? localPage : remotePage
       );
+
+      params.append("limit", jobsPerPage);
 
       if (keyword) params.append("what", keyword);
       if (salaryMin) params.append("salary_min", salaryMin);
@@ -210,7 +210,7 @@ export default function JobSearch() {
 
       const data = await res.json();
 
-      if (loadJobs.latestRequest !== requestId) {
+      if (latestRequestRef.current !== requestId) {
         console.log("⚠️ Ignoring stale response");
         return;
       }
@@ -222,12 +222,6 @@ export default function JobSearch() {
         totalLocalPages: data.totalLocalPages
       });
       
-
-      // ✅ NOW data exists — safe to use
-      const allJobs = [
-        ...(data.localJobs || []),
-        ...(data.remoteJobs || [])
-      ];
 
       
       setTotalLocalPages(data.totalLocalPages || 1);
@@ -425,7 +419,9 @@ export default function JobSearch() {
     return () => clearTimeout(delay);
   }, [
     searchTrigger,
-    view === "local" ? localPage : remotePage
+    view,
+    localPage,
+    remotePage
   ]);
 
   
@@ -584,7 +580,8 @@ export default function JobSearch() {
 
             if (valid || value.trim() === "") {
               setError("");
-              setSearchTrigger(prev => prev + 1); // 🔥 only trigger when valid
+              setLocalPage(1);
+              setSearchTrigger(prev => prev + 1);
             }
           }}
         />
@@ -594,6 +591,7 @@ export default function JobSearch() {
           disabled={view === "remote"}
           onChange={(e) => {
             setRadius(Number(e.target.value));
+            setLocalPage(1);
             setSearchTrigger(prev => prev + 1);
           }}
         >
@@ -609,6 +607,7 @@ export default function JobSearch() {
           onChange={(e) => {
             const value = Number(e.target.value);
             setSalaryMin(value);
+            setLocalPage(1);
 
             if (salaryMax && value > salaryMax) {
               setSalaryMax(value); // auto-fix
@@ -630,6 +629,7 @@ export default function JobSearch() {
           onChange={(e) => {
             const value = Number(e.target.value);
             setSalaryMax(value);
+            setLocalPage(1);
 
             if (salaryMin && value < salaryMin) {
               setSalaryMin(value); // auto-fix

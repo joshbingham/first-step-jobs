@@ -176,7 +176,7 @@ app.get("/jobs", async (req, res) => {
     // -------------------------
     // PAGINATION (FIXED)
     // -------------------------
-    const limit = 8;
+    const limit = Number(req.query.limit) || 8;
     const pageNum = Number(page) || 1;
 
     const start = (pageNum - 1) * limit;
