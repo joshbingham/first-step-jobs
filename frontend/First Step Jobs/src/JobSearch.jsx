@@ -161,15 +161,12 @@ export default function JobSearch() {
   // ----------------------------
   const loadJobs = async () => {
     setLoading(true);
-    setError("")
+    setError("");
 
     const requestId = Date.now();
     latestRequestRef.current = requestId;
-    
-    
-  
-  try {
 
+    try {
       console.log("📄 PAGE STATE:", {
         view,
         localPage,
@@ -180,60 +177,67 @@ export default function JobSearch() {
 
       const trimmedPostcode = postcode.trim();
 
-      const isValidPostcode =
-        /^[A-Z]{1,2}\d[A-Z\d]? ?\d[A-Z]{2}$/i.test(trimmedPostcode);
-
-      
-
       const params = new URLSearchParams();
 
-      params.append(
-        "page",
-        view === "local" ? localPage : remotePage
-      );
+      // ✅ FIX: force string + ensure correct page is always sent
+      const pageToUse = view === "local" ? localPage : remotePage;
+      params.append("page", String(pageToUse));
 
-      params.append("limit", jobsPerPage);
+      // ✅ FIX: force string consistency
+      params.append("limit", String(jobsPerPage));
 
       if (keyword) params.append("what", keyword);
       if (salaryMin) params.append("salary_min", salaryMin);
       if (salaryMax) params.append("salary_max", salaryMax);
 
       if (view === "local" && trimmedPostcode) {
-      params.append("location", trimmedPostcode);
-      params.append("distance", radius);
-    }
+        params.append("location", trimmedPostcode);
+        params.append("distance", radius);
+      }
 
       const url = `${API_BASE}/jobs?${params.toString()}`;
       console.log("API CALL:", url);
 
       const res = await fetch(url);
-
       const data = await res.json();
+
+  
+
+      console.log("📦 FRONTEND RECEIVED:", {
+        localJobs: data.localJobs?.length,
+        remoteJobs: data.remoteJobs?.length,
+        totalLocalPages: data.totalLocalPages,
+        totalRemotePages: data.totalRemotePages,
+        localPage,
+        remotePage,
+        view
+      });
+
+      console.log("📊 PAGINATION DEBUG:", {
+        totalLocalPages: data.totalLocalPages,
+        totalRemotePages: data.totalRemotePages,
+        localJobsLength: data.localJobs?.length,
+        remoteJobsLength: data.remoteJobs?.length
+      });
 
       if (latestRequestRef.current !== requestId) {
         console.log("⚠️ Ignoring stale response");
         return;
       }
 
-      
       console.log("📥 API RESPONSE:", {
         local: data.localJobs.length,
         remote: data.remoteJobs.length,
         totalLocalPages: data.totalLocalPages
       });
-      
 
-      
       setTotalLocalPages(data.totalLocalPages || 1);
       setTotalRemotePages(data.totalRemotePages || 1);
       setLocalJobs(data.localJobs || []);
-      console.log("🧠 SET localJobs:", data.localJobs?.length);
       setRemoteJobs(data.remoteJobs || []);
       setHasLoadedRemote(true);
       setUsedRadius(data.usedRadius || radius);
       setHasSearched(true);
-
-      
 
     } catch (err) {
       console.error("Failed to load jobs:", err);
@@ -760,8 +764,12 @@ export default function JobSearch() {
               </ul>
               <div className="pagination">
                 <button
-                  onClick={() => setLocalPage(prev => Math.max(prev - 1, 1))}
-                  disabled={localPage === 1}
+                  onClick={() =>
+                    setLocalPage(prev =>
+                      Math.min(prev + 1, totalLocalPages)
+                    )
+                  }
+                  disabled={localPage === totalLocalPages || loading}
                 >
                   ⬅ Prev
                 </button>
