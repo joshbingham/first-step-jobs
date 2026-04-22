@@ -159,10 +159,11 @@ export default function JobSearch() {
   // MAIN API FUNCTION
   // ----------------------------
   const loadJobs = async () => {
-    const requestId = Date.now();
-    loadJobs.latestRequest = requestId;
     setLoading(true);
     setError("")
+
+    const requestId = Date.now();
+    loadJobs.latestRequest = requestId;
     
     
   
@@ -415,14 +416,17 @@ export default function JobSearch() {
   
 
   useEffect(() => {
-  if (!view) return;
+    if (!view) return;
 
-  const delay = setTimeout(() => {
-    loadJobs();
-  }, 300);
+    const delay = setTimeout(() => {
+      loadJobs();
+    }, 300);
 
-  return () => clearTimeout(delay);
-}, [searchTrigger, localPage, remotePage]);
+    return () => clearTimeout(delay);
+  }, [
+    searchTrigger,
+    view === "local" ? localPage : remotePage
+  ]);
 
   
 
