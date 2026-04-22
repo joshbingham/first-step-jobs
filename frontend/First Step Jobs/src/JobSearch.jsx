@@ -552,6 +552,8 @@ export default function JobSearch() {
           value={keyword}
           onChange={(e) => {
             setKeyword(e.target.value);
+            setLocalPage(1);
+            setRemotePage(1);
             setSearchTrigger(prev => prev + 1);
           }}
         />
