@@ -21,16 +21,26 @@ app.get("/", (req, res) => {
 });
 
 /* =========================
-   JOBS ENDPOINT (CLEAN)
+   JOBS ENDPOINT (FIXED PAGINATION)
 ========================= */
 app.get("/jobs", async (req, res) => {
   console.log("🔥 /jobs route hit");
   console.log("QUERY PARAMS:", req.query);
 
   try {
-    const { what, location, distance, salary_min, salary_max, page } = req.query;
+    const {
+      what,
+      location,
+      distance,
+      salary_min,
+      salary_max,
+      page,
+      limit
+    } = req.query;
 
     const radiusMiles = Number(distance) || 10;
+    const pageNum = Number(page) || 1;
+    const pageLimit = Number(limit) || 8;
 
     let userLat = null;
     let userLon = null;
@@ -54,23 +64,19 @@ app.get("/jobs", async (req, res) => {
     }
 
     // -------------------------
-    // ADZUNA
+    // ADZUNA (FIXED: NO INTERNAL PAGINATION)
     // -------------------------
     let adzunaJobs = [];
 
     try {
-      const isPostcode =
-        location &&
-        /^[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}$/i.test(location);
-
       const response = await axios.get(
-        "https://api.adzuna.com/v1/api/jobs/gb/search/1",
+        `https://api.adzuna.com/v1/api/jobs/gb/search/1`, // FIXED HERE
         {
           params: {
             app_id: process.env.ADZUNA_APP_ID,
             app_key: process.env.ADZUNA_APP_KEY,
             what: what || "",
-            where: isPostcode ? location : "",
+            where: location || "",
             distance: radiusMiles,
             results_per_page: 50,
           },
@@ -83,7 +89,7 @@ app.get("/jobs", async (req, res) => {
       }));
 
       console.log("✅ Adzuna:", adzunaJobs.length);
-    } catch (err) {
+    } catch {
       console.log("❌ Adzuna failed");
     }
 
@@ -130,7 +136,7 @@ app.get("/jobs", async (req, res) => {
     } catch {}
 
     // -------------------------
-    // MERGE
+    // MERGE (single dataset)
     // -------------------------
     let jobs = [...adzunaJobs, ...remotiveJobs, ...arbeitnowJobs];
 
@@ -170,30 +176,25 @@ app.get("/jobs", async (req, res) => {
       j => j.source === "remotive" || j.isRemote || !j.latitude
     );
 
-    console.log("🏠 LOCAL JOBS:", localJobs.length);
-    console.log("🌍 REMOTE JOBS:", remoteJobs.length);
-
     // -------------------------
-    // PAGINATION (FIXED)
+    // PAGINATION (ONLY PLACE NOW)
     // -------------------------
-    const limit = Number(req.query.limit) || 8;
-    const pageNum = Number(page) || 1;
-
-    const start = (pageNum - 1) * limit;
-    const end = start + limit;
+    const start = (pageNum - 1) * pageLimit;
+    const end = start + pageLimit;
 
     const paginatedLocalJobs = localJobs.slice(start, end);
     const paginatedRemoteJobs = remoteJobs.slice(start, end);
 
-    const totalLocalPages = Math.ceil(localJobs.length / limit);
-    const totalRemotePages = Math.ceil(remoteJobs.length / limit);
+    const totalLocalPages = Math.ceil(localJobs.length / pageLimit);
+    const totalRemotePages = Math.ceil(remoteJobs.length / pageLimit);
 
-    console.log("📤 FINAL RESPONSE CHECK:", {
-      localReturned: paginatedLocalJobs.length,
-      remoteReturned: paginatedRemoteJobs.length,
-      totalLocal: localJobs.length,
-      totalRemote: remoteJobs.length,
-      pageNum
+    console.log("📊 PAGINATION DEBUG FIXED:", {
+      pageNum,
+      pageLimit,
+      localJobs: localJobs.length,
+      remoteJobs: remoteJobs.length,
+      totalLocalPages,
+      totalRemotePages,
     });
 
     return res.json({
@@ -201,14 +202,18 @@ app.get("/jobs", async (req, res) => {
       remoteJobs: paginatedRemoteJobs,
       totalLocalPages,
       totalRemotePages,
+      totalLocalJobs: localJobs.length,
+      totalRemoteJobs: remoteJobs.length,
       usedRadius: radiusMiles,
     });
+
   } catch (err) {
     console.error("❌ FULL ERROR:", err);
     res.status(500).json({ error: "Failed to fetch jobs" });
   }
 });
 
+/* COMMUTE ENDPOINT (UNCHANGED) */
 app.get("/commute", async (req, res) => {
   try {
     const { originLat, originLon, destLat, destLon, mode } = req.query;
@@ -224,7 +229,6 @@ app.get("/commute", async (req, res) => {
       Number(destLon),
       mode || "driving"
     );
-  
 
     res.json(result);
   } catch (err) {
@@ -233,9 +237,7 @@ app.get("/commute", async (req, res) => {
   }
 });
 
-/* =========================
-   START SERVER
-========================= */
+/* START SERVER */
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
