@@ -56,6 +56,8 @@ export default function JobSearch() {
   // UI state
   const [view, setView] = useState(null); // default to remote (more forgiving UX)
 
+  // Reference to Jobs Near You and Remote Jobs sections for scrolling
+  const resultsRef = useRef(null);
   // Save/Unsave jobs
   const toggleSaveJob = (job) => {
     const exists = savedJobs.some(j => j.id === job.id);
@@ -469,6 +471,15 @@ export default function JobSearch() {
     );
   }, []);
 
+  useEffect(() => {
+    if (!resultsRef.current) return;
+
+    resultsRef.current.scrollIntoView({
+      behavior: "smooth",
+      block: "start"
+    });
+  }, [localPage, remotePage, view]);
+
 
   const buildSearchSummary = () => {
     const parts = [];
@@ -725,7 +736,7 @@ export default function JobSearch() {
           {/* LOCAL */}
           {view === "local" && (
             <>
-              <h2>Jobs Near You</h2>
+              <h2 ref={resultsRef}>Jobs Near You</h2>
 
               {usedRadius > radius && (
                 <p className="helper-text">
@@ -738,7 +749,13 @@ export default function JobSearch() {
               )}
 
               <ul className="job-grid">
-                
+                {loading && (
+                  <div className="spinner-overlay">
+                    <div className="spinner"></div>
+                    <p>Loading results...</p>
+                  </div>
+                )}
+
                 {sortedLocalJobs.map((job) => {
                   
                   const jobKey = `${job.id}-${travelMode}`;
@@ -758,18 +775,16 @@ export default function JobSearch() {
                       commuteTime={commuteTimes[jobKey]}
                       travelMode={travelMode}
                     />
-
-                );
+                  );
                 })}
               </ul>
               <div className="pagination">
                 <button
-                  onClick={() =>
-                    setLocalPage(prev =>
-                      Math.min(prev + 1, totalLocalPages)
-                    )
-                  }
-                  disabled={localPage === totalLocalPages || loading}
+                  onClick={() => {
+                    setLoading(true);
+                    setLocalPage(prev => Math.max(prev - 1, 1));
+                  }}
+                  disabled={localPage === 1 || loading}
                 >
                   ⬅ Prev
                 </button>
@@ -779,12 +794,13 @@ export default function JobSearch() {
                 </span>
 
                 <button
-                  onClick={() =>
+                  onClick={() => {
+                    setLoading(true);
                     setLocalPage(prev =>
                       Math.min(prev + 1, totalLocalPages)
-                    )
-                  }
-                  disabled={localPage === totalLocalPages}
+                    );
+                  }}
+                  disabled={localPage === totalLocalPages || loading}
                 >
                   Next ➡
                 </button>
@@ -795,13 +811,20 @@ export default function JobSearch() {
           {/* REMOTE */}
           {view === "remote" && (
             <>
-              {remoteJobs.length > 0 && <h2>Remote Jobs</h2>}
+              {remoteJobs.length > 0 && <h2 ref={resultsRef}>Remote Jobs</h2>}
 
               {hasLoadedRemote && remoteJobs.length === 0 && !loading && (
                 <p>No remote jobs found.</p>
               )}
 
               <ul className="job-grid">
+                {loading && (
+                  <div className="spinner-overlay">
+                    <div className="spinner"></div>
+                    <p>Loading results...</p>
+                  </div>
+                )}
+
                 {sortedRemoteJobs.map((job) => {
 
                   const match = getMatchDetails(job);
@@ -820,8 +843,11 @@ export default function JobSearch() {
               </ul>
               <div className="pagination">
                 <button
-                  onClick={() => setRemotePage(prev => Math.max(prev - 1, 1))}
-                  disabled={remotePage === 1}
+                  onClick={() => {
+                    setLoading(true);
+                    setRemotePage(prev => Math.max(prev - 1, 1));
+                  }}
+                  disabled={remotePage === 1 || loading}
                 >
                   ⬅ Prev
                 </button>
@@ -831,12 +857,13 @@ export default function JobSearch() {
                 </span>
 
                 <button
-                  onClick={() =>
+                  onClick={() => {
+                    setLoading(true);
                     setRemotePage(prev =>
                       Math.min(prev + 1, totalRemotePages)
-                    )
-                  }
-                  disabled={remotePage === totalRemotePages}
+                    );
+                  }}
+                  disabled={remotePage === totalRemotePages || loading}
                 >
                   Next ➡
                 </button>
@@ -877,7 +904,9 @@ export default function JobSearch() {
               {savedJobs.length > jobsPerPage && (
                 <div className="pagination">
                   <button
-                    onClick={() => setSavedPage(prev => Math.max(prev - 1, 1))}
+                    onClick={() => {
+                      setSavedPage(prev => Math.max(prev - 1, 1));
+                    }}
                     disabled={savedPage === 1}
                   >
                     ⬅ Prev
@@ -888,11 +917,11 @@ export default function JobSearch() {
                   </span>
 
                   <button
-                    onClick={() =>
+                    onClick={() => {
                       setSavedPage(prev =>
                         Math.min(prev + 1, getTotalPages(sortedSavedJobs))
-                      )
-                    }
+                      );
+                    }}
                     disabled={savedPage === getTotalPages(sortedSavedJobs)}
                   >
                     Next ➡
