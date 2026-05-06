@@ -276,6 +276,20 @@ export default function JobSearch() {
       }
     }
 
+    // 1b. Learned keyword preferences
+    if (userProfile.preferredKeywords.length && job.title) {
+      const title = job.title.toLowerCase();
+
+      const matchedPreference = userProfile.preferredKeywords.find(pref =>
+        title.includes(pref)
+      );
+
+      if (matchedPreference) {
+        score += 10;
+        reasons.push("Matches your past searches");
+      }
+    }
+
   // 2. Salary match (range overlap)
   if ((salaryMin || salaryMax) && job.salary_min && job.salary_max) {
     const jobMin = job.salary_min;
