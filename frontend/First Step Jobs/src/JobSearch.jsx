@@ -12,6 +12,7 @@ export default function JobSearch() {
     preferredSalaryRange: null,
     preferredLocations: [],
   });
+  const [committedSearchTrigger, setCommittedSearchTrigger] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [sortBy, setSortBy] = useState("match"); 
@@ -245,6 +246,7 @@ export default function JobSearch() {
       setHasLoadedRemote(true);
       setUsedRadius(data.usedRadius || radius);
       setHasSearched(true);
+      setCommittedSearchTrigger(prev => prev + 1);
 
     } catch (err) {
       console.error("Failed to load jobs:", err);
@@ -417,6 +419,31 @@ export default function JobSearch() {
     return 0;
   });
 
+  useEffect(() => {
+    const value = keyword.trim().toLowerCase();
+
+    if (!value || value.length < 3) return;
+
+    const hasResults =
+      (view === "local" && localJobs.length > 0) ||
+      (view === "remote" && remoteJobs.length > 0);
+
+    if (!hasResults) return; // 🚫 don't store weak / empty searches
+
+    setUserProfile(prev => {
+      const filtered = prev.preferredKeywords.filter(existing => {
+        return !value.startsWith(existing);
+      });
+
+      if (filtered.includes(value)) return prev;
+
+      return {
+        ...prev,
+        preferredKeywords: [...filtered, value]
+      };
+    });
+
+  }, [committedSearchTrigger]);
   
   useEffect(() => {
     console.log("USER PROFILE:", userProfile);
@@ -569,7 +596,9 @@ export default function JobSearch() {
           placeholder="Keyword (e.g. developer)"
           value={keyword}
           onChange={(e) => {
-            setKeyword(e.target.value);
+            const value = e.target.value;
+            setKeyword(value);
+
             setLocalPage(1);
             setRemotePage(1);
             setSearchTrigger(prev => prev + 1);
