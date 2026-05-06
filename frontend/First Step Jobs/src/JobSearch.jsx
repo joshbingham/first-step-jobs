@@ -7,6 +7,11 @@ export default function JobSearch() {
   const latestRequestRef = useRef(0);
   const [localJobs, setLocalJobs] = useState([]);
   const [remoteJobs, setRemoteJobs] = useState([]);
+  const [userProfile, setUserProfile] = useState({
+    preferredKeywords: [],
+    preferredSalaryRange: null,
+    preferredLocations: [],
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [sortBy, setSortBy] = useState("match"); 
@@ -413,7 +418,9 @@ export default function JobSearch() {
   });
 
   
-  
+  useEffect(() => {
+    console.log("USER PROFILE:", userProfile);
+  }, [userProfile]);
 
   useEffect(() => {
     if (!view) return;
