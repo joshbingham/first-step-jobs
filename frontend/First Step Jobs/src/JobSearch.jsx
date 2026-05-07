@@ -8,7 +8,7 @@ export default function JobSearch() {
   const [localJobs, setLocalJobs] = useState([]);
   const [remoteJobs, setRemoteJobs] = useState([]);
   const [userProfile, setUserProfile] = useState({
-    preferredKeywords: [],
+    preferredKeywords: {},
     preferredSalaryRange: null,
     preferredLocations: [],
   });
@@ -277,15 +277,25 @@ export default function JobSearch() {
     }
 
     // 1b. Learned keyword preferences
-    if (userProfile.preferredKeywords.length && job.title) {
+    if (job.title) {
       const title = job.title.toLowerCase();
 
-      const matchedPreference = userProfile.preferredKeywords.find(pref =>
-        title.includes(pref)
-      );
+      let preferenceBoost = 0;
 
-      if (matchedPreference) {
-        score += 10;
+      Object.entries(userProfile.preferredKeywords).forEach(([pref, data]) => {
+        if (title.includes(pref)) {
+          preferenceBoost += Math.min(15, data.count * 3);
+        }
+      });
+
+      if (preferenceBoost > 0) {
+        console.log("PREFERENCE BOOST:", {
+          title: job.title,
+          preferenceBoost,
+          preferredKeywords: userProfile.preferredKeywords
+        });
+
+        score += preferenceBoost;
         reasons.push("Matches your past searches");
       }
     }
@@ -442,18 +452,19 @@ export default function JobSearch() {
       (view === "local" && localJobs.length > 0) ||
       (view === "remote" && remoteJobs.length > 0);
 
-    if (!hasResults) return; // 🚫 don't store weak / empty searches
+    if (!hasResults) return;
 
     setUserProfile(prev => {
-      const filtered = prev.preferredKeywords.filter(existing => {
-        return !value.startsWith(existing);
-      });
-
-      if (filtered.includes(value)) return prev;
+      const current = prev.preferredKeywords[value] || { count: 0 };
 
       return {
         ...prev,
-        preferredKeywords: [...filtered, value]
+        preferredKeywords: {
+          ...prev.preferredKeywords,
+          [value]: {
+            count: current.count + 1
+          }
+        }
       };
     });
 
