@@ -7,10 +7,26 @@ export default function JobSearch() {
   const latestRequestRef = useRef(0);
   const [localJobs, setLocalJobs] = useState([]);
   const [remoteJobs, setRemoteJobs] = useState([]);
-  const [userProfile, setUserProfile] = useState({
-    preferredKeywords: {},
-    preferredSalaryRange: null,
-    preferredLocations: [],
+  const [userProfile, setUserProfile] = useState(() => {
+    const stored = localStorage.getItem("userProfile");
+
+    if (!stored) {
+      return {
+        preferredKeywords: {},
+        preferredSalaryRange: null,
+        preferredLocations: [],
+      };
+    }
+
+    try {
+      return JSON.parse(stored);
+    } catch {
+      return {
+        preferredKeywords: {},
+        preferredSalaryRange: null,
+        preferredLocations: [],
+      };
+    }
   });
   const [committedSearchTrigger, setCommittedSearchTrigger] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -74,6 +90,29 @@ export default function JobSearch() {
       updated = savedJobs.filter(j => j.id !== job.id);
     } else {
       const matchAtSave = getMatchDetails(job);
+      const titleWords = (job.title || "")
+        .toLowerCase()
+        .split(/\W+/)
+        .filter(word => word.length >= 4);
+      setUserProfile(prev => {
+        const updatedKeywords = { ...prev.preferredKeywords };
+
+        titleWords.forEach(word => {
+          if (!updatedKeywords[word]) {
+            updatedKeywords[word] = {
+              searches: 0,
+              saves: 0
+            };
+          }
+
+          updatedKeywords[word].saves += 1;
+        });
+
+        return {
+          ...prev,
+          preferredKeywords: updatedKeywords
+        };
+      });
       updated = [
         ...savedJobs,
         {
@@ -284,7 +323,11 @@ export default function JobSearch() {
 
       Object.entries(userProfile.preferredKeywords).forEach(([pref, data]) => {
         if (title.includes(pref)) {
-          preferenceBoost += Math.min(15, data.count * 3);
+          const totalInteractions =
+            (data.searches || 0) +
+            (data.saves || 0) * 2;
+
+          preferenceBoost += Math.min(15, totalInteractions * 3);
         }
       });
 
@@ -444,27 +487,36 @@ export default function JobSearch() {
   });
 
   useEffect(() => {
+    localStorage.setItem(
+      "userProfile",
+      JSON.stringify(userProfile)
+    );
+  }, [userProfile]);
+
+  useEffect(() => {
+    if (!localJobs.length && !remoteJobs.length) return;
+
     const value = keyword.trim().toLowerCase();
 
     if (!value || value.length < 3) return;
 
-    const hasResults =
-      (view === "local" && localJobs.length > 0) ||
-      (view === "remote" && remoteJobs.length > 0);
-
-    if (!hasResults) return;
-
     setUserProfile(prev => {
-      const current = prev.preferredKeywords[value] || { count: 0 };
+      const updatedKeywords = {
+        ...prev.preferredKeywords
+      };
+
+      if (!updatedKeywords[value]) {
+        updatedKeywords[value] = {
+          searches: 0,
+          saves: 0
+        };
+      }
+
+      updatedKeywords[value].searches += 1;
 
       return {
         ...prev,
-        preferredKeywords: {
-          ...prev.preferredKeywords,
-          [value]: {
-            count: current.count + 1
-          }
-        }
+        preferredKeywords: updatedKeywords
       };
     });
 
