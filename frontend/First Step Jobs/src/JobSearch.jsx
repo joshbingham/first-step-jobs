@@ -425,6 +425,7 @@ export default function JobSearch() {
     return {
       score: Math.max(0, Math.min(100, score)),
       reasons,
+      preferenceBoost
     };
 
     
