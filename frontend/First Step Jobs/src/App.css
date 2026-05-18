@@ -502,6 +502,34 @@ MATCH REASONS (NO BULLETS)
 }
 
 /* =========================
+RECOMMENDATION REASONS (HIGHLIGHTED BOX) 
+========================= */
+
+.recommendation-reasons {
+  margin-top: 10px;
+  padding: 10px;
+  background: rgba(255, 215, 0, 0.08);
+  border-left: 3px solid gold;
+  border-radius: 8px;
+}
+
+.recommendation-reasons p {
+  margin-bottom: 6px;
+  font-size: 0.9rem;
+}
+
+.recommendation-reasons ul {
+  margin: 0;
+  padding-left: 18px;
+  list-style: none;
+}
+
+.recommendation-reasons li {
+  font-size: 0.9rem;
+  margin-bottom: 4px;
+}
+
+/* =========================
 DETAILS
 ========================= */
 .job-details p {

@@ -300,6 +300,7 @@ export default function JobSearch() {
   const getMatchDetails = (job) => {
     let score = 30;
     const reasons = [];
+    const recommendationReasons = [];
 
     // 1. Keyword match
     if (keyword && job.title) {
@@ -330,6 +331,18 @@ export default function JobSearch() {
             (data.saves || 0) * 2;
 
           preferenceBoost += Math.min(15, totalInteractions * 3);
+
+          if ((data.saves || 0) >= 2) {
+            recommendationReasons.push(
+              `You saved similar ${pref} jobs`
+            );
+          }
+
+          if ((data.searches || 0) >= 3) {
+            recommendationReasons.push(
+              `You frequently search for ${pref} roles`
+            );
+          }
         }
       });
 
@@ -427,7 +440,8 @@ export default function JobSearch() {
     return {
       score: Math.max(0, Math.min(100, score)),
       reasons,
-      preferenceBoost
+      preferenceBoost,
+      recommendationReasons
     };
 
     
