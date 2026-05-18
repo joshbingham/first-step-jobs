@@ -67,10 +67,10 @@ export default function JobCard({
 
       {match.recommendationReasons?.length > 0 && (
         <div className="recommendation-reasons">
-          <p><strong>Why recommended:</strong></p>
+          <p><strong>Why this is recommended for you</strong></p>
 
           <ul>
-            {match.recommendationReasons.map((reason, i) => (
+            {match.recommendationReasons.slice(0, 3).map((reason, i) => (
               <li key={i}>
                 ✨ {reason}
               </li>

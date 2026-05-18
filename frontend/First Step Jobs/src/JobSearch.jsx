@@ -367,6 +367,12 @@ export default function JobSearch() {
             );
           }
 
+          if ((data.clicks || 0) >= 5) {
+            recommendationReasons.push(
+              `You frequently view ${pref} roles`
+            );
+          }
+
           if ((data.searches || 0) >= 3) {
             recommendationReasons.push(
               `You frequently search for ${pref} roles`
