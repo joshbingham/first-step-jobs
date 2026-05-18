@@ -869,7 +869,7 @@ export default function JobSearch() {
       {error && <p className="error-text">{error}</p>}
 
       
-      {recommendedJobs.length > 0 && (
+      {view !== "saved" && recommendedJobs.length > 0 && (
         <>
           <h2>🔥 Recommended For You</h2>
 
