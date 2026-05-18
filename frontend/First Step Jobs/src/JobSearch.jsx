@@ -430,7 +430,18 @@ export default function JobSearch() {
     
   };
 
-  
+  const recommendedJobs = [...remoteJobs, ...localJobs]
+    .filter(job => {
+      const match = getMatchDetails(job);
+      return match.preferenceBoost >= 6;
+    })
+    .sort((a, b) => {
+      return (
+        getMatchDetails(b).score -
+        getMatchDetails(a).score
+      );
+    })
+    .slice(0, 6);
 
   const sortedLocalJobs = [...localJobs].sort((a, b) => {
 
