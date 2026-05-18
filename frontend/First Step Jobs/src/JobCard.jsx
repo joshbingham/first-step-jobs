@@ -8,9 +8,15 @@ export default function JobCard({
   commuteTime = null,
   onFetchCommute,
   travelMode,
+  onJobClick
 }) {
 
   console.log("COMMUTE PROP:", commuteTime);
+
+  const handleClick = () => {
+    onJobClick?.(job);
+  };
+  
   const getMatchLabel = (score) => {
     if (score >= 80) return "🔥 Excellent match";
     if (score >= 60) return "👍 Good match";
@@ -25,6 +31,7 @@ export default function JobCard({
         target="_blank"
         rel="noopener noreferrer"
         className="job-header"
+        onClick={handleClick}
       >
         <h3>{job.title}</h3>
         <p className="job-meta">

@@ -128,6 +128,34 @@ export default function JobSearch() {
     localStorage.setItem("savedJobs", JSON.stringify(updated));
   };
 
+  const trackJobClick = (job) => {
+    const titleWords = (job.title || "")
+      .toLowerCase()
+      .split(/\W+/)
+      .filter(word => word.length >= 4);
+
+    setUserProfile(prev => {
+      const updated = { ...prev.preferredKeywords };
+
+      titleWords.forEach(word => {
+        if (!updated[word]) {
+          updated[word] = {
+            searches: 0,
+            saves: 0,
+            clicks: 0
+          };
+        }
+
+        updated[word].clicks = (updated[word].clicks || 0) + 1;
+      });
+
+      return {
+        ...prev,
+        preferredKeywords: updated
+      };
+    });
+  };
+
   // Check if a job is saved
   const isSaved = (job) => {
     return savedJobs.some(j => j.id === job.id);
@@ -326,11 +354,12 @@ export default function JobSearch() {
 
       Object.entries(userProfile.preferredKeywords).forEach(([pref, data]) => {
         if (title.includes(pref)) {
-          const totalInteractions =
-            (data.searches || 0) +
-            (data.saves || 0) * 2;
+          const searchWeight = (data.searches || 0) * 1;
+          const saveWeight = (data.saves || 0) * 4;
 
-          preferenceBoost += Math.min(15, totalInteractions * 3);
+          const totalScore = searchWeight + saveWeight;
+
+          preferenceBoost += Math.min(25, totalScore * 2);
 
           if ((data.saves || 0) >= 2) {
             recommendationReasons.push(
@@ -885,6 +914,7 @@ export default function JobSearch() {
                   onSave={toggleSaveJob}
                   isSaved={isSaved(job)}
                   showDistance={view === "local"}
+                  onJobClick={trackJobClick}
                 />
               );
             })}
@@ -936,6 +966,7 @@ export default function JobSearch() {
                       onFetchCommute={() => fetchCommuteForJob(job)}
                       commuteTime={commuteTimes[jobKey]}
                       travelMode={travelMode}
+                      onJobClick={trackJobClick}
                     />
                   );
                 })}
@@ -999,6 +1030,7 @@ export default function JobSearch() {
                       onSave={toggleSaveJob}
                       isSaved={isSaved(job)}
                       showDistance={false}
+                      onJobClick={trackJobClick}
                     />
                   );
                 })}
@@ -1054,6 +1086,7 @@ export default function JobSearch() {
                       job={job}
                       match={match}
                       onRemove={toggleSaveJob}
+                      onJobClick={trackJobClick}
                       isSaved={true}
                       showDistance={true}
                       onFetchCommute={() => fetchCommuteForJob(job)}
