@@ -316,10 +316,12 @@ export default function JobSearch() {
     }
 
     // 1b. Learned keyword preferences
+    let preferenceBoost = 0;
+
     if (job.title) {
       const title = job.title.toLowerCase();
 
-      let preferenceBoost = 0;
+      
 
       Object.entries(userProfile.preferredKeywords).forEach(([pref, data]) => {
         if (title.includes(pref)) {
