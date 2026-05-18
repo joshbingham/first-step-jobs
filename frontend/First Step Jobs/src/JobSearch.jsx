@@ -852,7 +852,28 @@ export default function JobSearch() {
       {error && <p className="error-text">{error}</p>}
 
       
+      {recommendedJobs.length > 0 && (
+        <>
+          <h2>🔥 Recommended For You</h2>
 
+          <ul className="job-grid">
+            {recommendedJobs.map(job => {
+              const match = getMatchDetails(job);
+
+              return (
+                <JobCard
+                  key={`recommended-${job.id}`}
+                  job={job}
+                  match={match}
+                  onSave={toggleSaveJob}
+                  isSaved={isSaved(job)}
+                  showDistance={view === "local"}
+                />
+              );
+            })}
+          </ul>
+        </>
+      )}
       
       {/* RESULTS */}
       {(hasSearched || view === "saved") && (
