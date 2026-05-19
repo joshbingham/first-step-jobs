@@ -101,11 +101,17 @@ export default function JobSearch() {
           if (!updatedKeywords[word]) {
             updatedKeywords[word] = {
               searches: 0,
-              saves: 0
+              saves: 0,
+              clicks: 0,
+              intentScore: 0
             };
           }
 
-          updatedKeywords[word].saves += 1;
+          updatedKeywords[word].saves = (updatedKeywords[word].saves || 0) + 1;
+
+          // Intent-weighted saves
+          updatedKeywords[word].intentScore =
+            (updatedKeywords[word].intentScore || 0) + 3;
         });
 
         return {
@@ -142,7 +148,8 @@ export default function JobSearch() {
           updated[word] = {
             searches: 0,
             saves: 0,
-            clicks: 0
+            clicks: 0,
+            intentScore: 0
           };
         }
 
@@ -355,15 +362,17 @@ export default function JobSearch() {
       Object.entries(userProfile.preferredKeywords).forEach(([pref, data]) => {
         if (title.includes(pref)) {
           const searchWeight = (data.searches || 0) * 1;
-          const saveWeight = (data.saves || 0) * 4;
+          const saveWeight =
+            (data.saves || 0) * 2 +
+            (data.intentScore || 0) * 3;
 
           const totalScore = searchWeight + saveWeight;
 
           preferenceBoost += Math.min(25, totalScore * 2);
 
-          if ((data.saves || 0) >= 2) {
+          if ((data.intentScore || 0) >= 6) {
             recommendationReasons.push(
-              `You saved similar ${pref} jobs`
+              `Strong interest pattern detected in ${pref} roles`
             );
           }
 
@@ -561,7 +570,7 @@ export default function JobSearch() {
 
     const value = keyword.trim().toLowerCase();
 
-    if (!value || value.length < 3) return;
+    if (!value || value.length < 5) return;
 
     setUserProfile(prev => {
       const updatedKeywords = {
@@ -571,7 +580,9 @@ export default function JobSearch() {
       if (!updatedKeywords[value]) {
         updatedKeywords[value] = {
           searches: 0,
-          saves: 0
+          saves: 0,
+          clicks: 0,
+          intentScore: 0
         };
       }
 
