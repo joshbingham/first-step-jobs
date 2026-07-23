@@ -160,21 +160,21 @@ cd first-step-jobs
 
 ### 2. Install dependencies
 
-**Server**
+**Backend**
 ```bash
-cd server
+cd backend
 npm install
 ```
 
-**Client**
+**Frontend**
 ```bash
-cd client
+cd frontend
 npm install
 ```
 
 ### 3. Environment Variables
 
-Create a `.env` file in `/server`:
+Create a `.env` file in `/backend`:
 
 ```env
 ADZUNA_APP_ID=your_id
@@ -248,5 +248,6 @@ Calculate commute time:
 ## **👤 Author**
 
 **Joshua Bingham**  
-Junior Full-Stack Developer  
-React • Node.js • APIs • Data-driven UI
+Frontend & Full-Stack Developer  
+React • TypeScript • Node.js • APIs • Data-driven UI  
+Portfolio: [joshbingham.dev](https://joshbingham.dev/)
