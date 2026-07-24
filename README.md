@@ -1,253 +1,340 @@
-# **First Step Jobs 🚀**
+# First Step Jobs
 
-A full-stack job search platform designed to make job discovery **simpler, clearer, and more data-driven**.
+A decision-support platform that helps job seekers compare opportunities using personalised match scoring, realistic commute insights and intelligent filtering.
 
----
+[Live application](https://first-step-jobs-i7z9.vercel.app/) · [Portfolio](https://joshbingham.dev/) · [GitHub repository](https://github.com/joshbingham/first-step-jobs)
 
-## **🔍 Overview**
+## Overview
 
-**First Step Jobs** aggregates job listings from multiple sources and enhances them with:
+First Step Jobs brings vacancies from several job sources into one interface, then adds context that ordinary listings often leave out.
 
-- 📊 **Match scoring** (not just listings)
-- 📍 **Distance-based ranking**
-- 🚗 **Real-time commute insights**
-- 💾 **Saved jobs with persistent state**
+Instead of only showing available roles, the application helps users understand:
 
-The goal is to help users quickly understand **how well a job fits them**, instead of manually comparing listings across multiple platforms.
+- how closely a vacancy matches their preferences
+- why it received its match score
+- how far away it is
+- how long the commute could take by different travel modes
+- which opportunities they have already saved
 
----
+The aim is to make job searching more structured and reduce the effort involved in comparing roles across multiple platforms.
 
-## **💡 Why I Built This**
+## Why I built it
 
-This project came from my own frustration with job searching.
+This project grew from my own experience of job searching.
 
-Most platforms:
-- Don’t show how well a job matches your preferences  
-- Require switching between multiple sites  
-- Don’t integrate commute time into decision-making  
+Most job platforms present large numbers of vacancies, but users still have to work out for themselves whether each role is relevant, realistically commutable or worth revisiting. Comparing information across several websites also makes the process fragmented.
 
-I wanted to build something that:
-- Combines multiple job sources into one place  
-- Adds **transparent match scoring**  
-- Integrates **location and commute insights directly into the UI**  
-- Makes evaluating jobs faster and more intuitive  
+I wanted to build an application that:
 
----
+- combines vacancies from multiple sources
+- explains why an opportunity may be suitable
+- includes location and commute information in the decision
+- keeps saved roles and preferences available between sessions
+- makes a large set of results easier to review
 
-## **✨ Key Features**
+Rather than building another listings page, I focused on creating a transparent decision-support tool.
 
-### 🔎 Aggregated Job Search
-- Combines results from:
-  - Adzuna API  
-  - Remotive (remote jobs)  
-  - Arbeitnow  
-- Normalises and de-duplicates data into a unified format  
+## Key features
 
----
+### Aggregated job search
 
-### ⭐ Match Scoring System
-Each job is scored based on:
-- Keyword relevance  
-- Salary range overlap  
-- Distance from user  
-- Recency of posting  
+The backend retrieves vacancies from:
 
-Provides:
-- A percentage match score  
-- Clear reasons explaining the score  
+- Adzuna
+- Remotive
+- Arbeitnow
 
----
+Because each service returns different field names and data structures, the results are normalised into a shared job format before being sent to the frontend.
 
-### 📍 Location & Distance
-- Converts UK postcodes → latitude/longitude (Postcodes.io)  
-- Uses the **Haversine formula** to calculate distance  
-- Ranks jobs by proximity  
+Composite keys are used to identify likely duplicates so that the user sees a cleaner combined result set.
 
----
+### Match scoring
 
-### 🚗 Commute Time Integration
-- Calculates travel time based on:
-  - Car 🚗  
-  - Walking 🚶  
-  - Bike 🚴  
-  - Public transport 🚆  
-- Results cached client-side to avoid unnecessary requests  
+Each vacancy is assessed against several user preferences, including:
 
----
+- keyword relevance
+- salary overlap
+- distance
+- posting recency
+- remote-working suitability
 
-### 💾 Saved Jobs (Persistent State)
-- Save jobs with:
-  - Match score at time of saving  
-  - Match reasoning  
-- Stored in `localStorage`  
-- Fully reconstructable without relying on APIs  
+The interface shows both a percentage score and the reasons behind it. This keeps the recommendation logic visible instead of presenting an unexplained ranking.
 
----
+### Distance and commute insights
 
-### 🔄 Smart Pagination
-- Backend-driven pagination for:
-  - Local jobs  
-  - Remote jobs  
-- Prevents UI overload and improves performance  
+The application converts UK postcodes into coordinates using Postcodes.io and calculates straight-line distance with the Haversine formula.
 
----
+Users can also compare estimated commute times for:
 
-### ⚡ Responsive Filtering
-- Filters update dynamically:
-  - Keywords  
-  - Salary range  
-  - Distance radius  
-- Designed to balance:
-  - **Controlled API calls**  
-  - **Responsive UI updates**  
+- driving
+- walking
+- cycling
+- public transport
 
----
+Commute responses are cached to avoid repeating the same request unnecessarily.
 
-## **🧠 Technical Highlights**
+### Saved jobs
 
-### Backend (Node.js / Express)
-- Multi-API data aggregation  
-- Data normalisation across inconsistent schemas  
-- De-duplication using composite keys  
-- Location-based filtering + ranking  
-- Centralised pagination logic  
+Users can save vacancies for later review.
 
----
+A saved job retains:
 
-### Frontend (React)
-- Multi-view state management (local / remote / saved)  
-- Derived state handling for sorting and scoring  
-- Client-side caching (commute times)  
-- Persistent state via `localStorage`  
-- Dynamic UI updates based on user input  
+- the job information
+- its match score at the time it was saved
+- the reasons behind that score
+- the date it was saved
 
----
+Saved jobs are stored in `localStorage`, allowing the saved view to be reconstructed without requesting the original vacancy again.
 
-### 🧮 Custom Algorithms
-- Match scoring system combining multiple weighted factors  
-- Distance calculation using Haversine formula  
-- Progressive search radius fallback  
+### Backend-driven pagination
 
----
+Local and remote results are paginated by the backend.
 
-## **🧱 Tech Stack**
+This keeps the amount of data rendered at one time manageable and gives the frontend a consistent paging model across different vacancy sources.
+
+### Responsive filtering
+
+Users can refine results by:
+
+- keyword
+- postcode
+- search radius
+- minimum salary
+- maximum salary
+- travel mode
+
+The interface includes clear loading feedback while asynchronous searches and commute requests are running.
+
+## Technical decisions
+
+### Normalising external data
+
+The job APIs do not return identical schemas. The backend maps each source into a common structure so that React components can work with one predictable data shape.
+
+This separates provider-specific processing from presentation logic and makes it easier to add another source later.
+
+### De-duplicating combined results
+
+Vacancies from different services can describe the same role differently.
+
+The backend creates composite identifiers from job information such as title, company and location, then removes likely duplicates before pagination.
+
+### Keeping recommendation logic explainable
+
+The matching system uses weighted factors, but it also produces plain-language reasons for the score.
+
+This was an important product decision: users should be able to understand why a job has been ranked highly rather than having to trust an opaque number.
+
+### Separating local, remote and saved workflows
+
+The React frontend maintains distinct views for local roles, remote roles and saved jobs while sharing the search preferences and reusable presentation logic they need.
+
+Derived values such as sorting and scoring are calculated from the relevant source state rather than being copied into several competing state variables.
+
+### Caching commute requests
+
+Commute calculations can be slower and more expensive than ordinary UI updates.
+
+Previously requested journeys are cached so that revisiting a job or changing views does not automatically trigger the same external request again.
+
+### Testing smaller units
+
+The backend uses Jest and Supertest. Tests cover important processing logic, including job handling, distance calculations and commute-related behaviour.
+
+Breaking the application into smaller functions made those areas easier to verify and debug.
+
+## Architecture
+
+```text
+React frontend
+     |
+     | search filters and commute requests
+     v
+Node.js and Express API
+     |
+     | retrieves, normalises, de-duplicates,
+     | scores, filters and paginates vacancies
+     v
+Adzuna · Remotive · Arbeitnow · Postcodes.io · commute service
+
+Browser storage
+     |
+     └── saved jobs, saved match information and user preferences
+```
+
+## Tech stack
 
 ### Frontend
-- React  
-- JavaScript (ES6+)  
-- CSS (custom styling)
+
+- React
+- JavaScript (ES6+)
+- Vite
+- CSS
+- `localStorage`
 
 ### Backend
-- Node.js  
-- Express  
 
-### APIs & Services
-- Adzuna API  
-- Remotive API  
-- Arbeitnow API  
-- Postcodes.io  
-- Commute service (custom integration)
+- Node.js
+- Express
+- Axios
+- REST APIs
+- ESM modules
 
----
+### External services
 
-## **⚙️ Getting Started**
+- Adzuna API
+- Remotive API
+- Arbeitnow API
+- Postcodes.io
+- commute-time service
+
+### Testing and deployment
+
+- Jest
+- Supertest
+- Vercel
+- Render
+- Git
+- GitHub
+
+## Repository structure
+
+```text
+first-step-jobs/
+├── backend/
+├── frontend/
+└── README.md
+```
+
+The repository is divided into separate frontend and backend applications.
+
+## Getting started
+
+### Prerequisites
+
+- Node.js
+- npm
+- Adzuna developer credentials
 
 ### 1. Clone the repository
+
 ```bash
-git clone https://github.com/joshbingham/first-step-jobs
+git clone https://github.com/joshbingham/first-step-jobs.git
 cd first-step-jobs
 ```
 
-### 2. Install dependencies
+### 2. Install and run the backend
 
-**Backend**
 ```bash
 cd backend
 npm install
 ```
 
-**Frontend**
-```bash
-cd frontend
-npm install
-```
-
-### 3. Environment Variables
-
-Create a `.env` file in `/backend`:
+Create a `.env` file inside `backend`:
 
 ```env
-ADZUNA_APP_ID=your_id
-ADZUNA_APP_KEY=your_key
+ADZUNA_APP_ID=your_app_id
+ADZUNA_APP_KEY=your_app_key
 ```
 
-### 4. Run the app
+Start the backend:
 
-**Start backend**
-```bash
-npm run dev
-```
-
-**Start frontend**
 ```bash
 npm start
 ```
 
----
+For development with Nodemon:
 
-## **📡 API Endpoints**
+```bash
+npx nodemon server.js
+```
+
+### 3. Install and run the frontend
+
+Open another terminal from the repository root:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Vite will display the local frontend address in the terminal.
+
+## API endpoints
 
 ### `GET /jobs`
-Fetch jobs with filters:
-- `what` (keyword)
-- `location` (postcode)
-- `distance`
-- `salary_min`
-- `salary_max`
-- `page`
-- `limit`
 
----
+Retrieves processed vacancies.
+
+Supported query parameters include:
+
+| Parameter | Purpose |
+|---|---|
+| `what` | Search keyword |
+| `location` | UK postcode or location |
+| `distance` | Search radius |
+| `salary_min` | Minimum salary |
+| `salary_max` | Maximum salary |
+| `page` | Results page |
+| `limit` | Results per page |
+
+Example:
+
+```http
+GET /jobs?what=react&location=BN11&distance=25&page=1&limit=8
+```
 
 ### `GET /commute`
-Calculate commute time:
-- `originLat`, `originLon`
-- `destLat`, `destLon`
-- `mode` (driving, walking, bicycling, transit)
 
----
+Retrieves an estimated journey time.
 
-## **🧪 Key Learnings**
+| Parameter | Purpose |
+|---|---|
+| `originLat` | Origin latitude |
+| `originLon` | Origin longitude |
+| `destLat` | Destination latitude |
+| `destLon` | Destination longitude |
+| `mode` | `driving`, `walking`, `bicycling` or `transit` |
 
-- Normalising data from multiple APIs is non-trivial  
-- State persistence across views introduces subtle bugs  
-- Caching vs fresh data requires clear boundaries  
-- Debugging React requires understanding:
-  - state → derived state → render flow  
-- Smaller, testable units make debugging significantly easier  
+## Testing
 
----
+Run the backend test suite from the `backend` directory:
 
-## **🚀 Future Improvements**
+```bash
+npm test
+```
 
-- User accounts & cloud persistence  
-- Better salary normalisation across APIs  
-- Improved remote job classification  
-- Map-based job visualisation  
-- Enhanced filtering (experience level, tech stack, etc.)  
+## Key learnings
 
----
+This project strengthened my understanding of:
 
-## **📬 Links**
+- normalising inconsistent third-party API responses
+- designing transparent recommendation logic
+- separating source data from derived React state
+- preserving state across several application views
+- balancing cached data with fresh requests
+- debugging asynchronous UI behaviour
+- designing backend pagination for combined datasets
+- testing logic as small, focused units
+- deploying and connecting separate frontend and backend services
 
-- 🌐 Live Site: https://first-step-jobs-i7z9.vercel.app/  
-- 💻 GitHub: https://github.com/joshbingham/first-step-jobs  
+## Future improvements
 
----
+Potential next steps include:
 
-## **👤 Author**
+- user accounts and cloud-based saved jobs
+- stronger salary normalisation
+- improved remote-role classification
+- map-based vacancy exploration
+- filters for experience level and technology
+- configurable match-score weighting
+- more extensive API and interface tests
+- clearer handling when an external provider is unavailable
+
+## Author
 
 **Joshua Bingham**  
-Frontend & Full-Stack Developer  
-React • TypeScript • Node.js • APIs • Data-driven UI  
-Portfolio: [joshbingham.dev](https://joshbingham.dev/)
+Frontend & Full-Stack Developer
+
+[Portfolio](https://joshbingham.dev/) · [GitHub](https://github.com/joshbingham) · [LinkedIn](https://www.linkedin.com/in/joshua-bingham-48961112b)
